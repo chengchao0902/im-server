@@ -1,4 +1,4 @@
-﻿package net.openmob.mobileimsdk.server.qos;
+package net.openmob.mobileimsdk.server.qos;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

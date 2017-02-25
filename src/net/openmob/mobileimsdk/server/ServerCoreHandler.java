@@ -1,4 +1,4 @@
-﻿package net.openmob.mobileimsdk.server;
+package net.openmob.mobileimsdk.server;
 
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
@@ -261,7 +261,9 @@ public class ServerCoreHandler extends IoHandlerAdapter {
 
             if (this.serverEventListener != null) {
                 this.serverEventListener.onUserLogoutAction_CallBack(user_id, null);
-            } else logger.debug("[IMCORE]>> 客户端" + clientInfoToString(session) + "的会话被系统close了，但回调对象是null，没有进行回调.");
+            } else {
+                logger.debug("[IMCORE]>> 客户端" + clientInfoToString(session) + "的会话被系统close了，但回调对象是null，没有进行回调.");
+            }
         } else {
             logger.warn("[IMCORE]【注意】客户端" + clientInfoToString(session) + "的会话被系统close了，但它里面没有存放user_id，这个会话是何时建立的？");
         }

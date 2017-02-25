@@ -14,7 +14,7 @@ public class IMServerLauncher extends ServerLauncher {
 
     public static IMServerLauncher getLauncher() throws IOException {
         if (launcher == null) {
-            ServerLauncher.appKey = "5418023dfd98c579b6001741";
+//            ServerLauncher.appKey = "5418023dfd98c579b6001741";
             QoS4SendDaemonS2C.DEBUG = true;
             IMServerLauncher.PORT = 7901;
             IMServerLauncher.setSenseMode(SenseMode.MODE_10S);

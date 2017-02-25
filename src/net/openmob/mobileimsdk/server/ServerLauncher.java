@@ -1,4 +1,3 @@
-﻿
 package net.openmob.mobileimsdk.server;
 
 import java.io.IOException;
@@ -160,7 +159,7 @@ public abstract class ServerLauncher {
             SESION_RECYCLER_EXPIRE = expire;
     }
 
-    public static enum SenseMode {
+    public enum SenseMode {
         MODE_3S,
 
         MODE_10S,
@@ -169,11 +168,7 @@ public abstract class ServerLauncher {
 
         MODE_60S,
 
-        MODE_120S;
+        MODE_120S
     }
 
-//	public static void main(String[] args) throws IOException 
-//  {
-//      new ServerLauncher().startup();
-//  }
 }

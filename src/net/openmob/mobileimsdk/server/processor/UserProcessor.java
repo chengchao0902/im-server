@@ -1,4 +1,4 @@
-﻿package net.openmob.mobileimsdk.server.processor;
+package net.openmob.mobileimsdk.server.processor;
 
 import java.util.HashMap;
 import java.util.Iterator;
