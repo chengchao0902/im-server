@@ -1,8 +1,5 @@
 package net.openmob.mobileimsdk.server;
 
-import java.net.SocketAddress;
-import java.nio.ByteBuffer;
-
 import net.openmob.mobileimsdk.server.event.MessageQoSEventListenerS2C;
 import net.openmob.mobileimsdk.server.event.ServerEventListener;
 import net.openmob.mobileimsdk.server.processor.UserProcessor;
@@ -20,6 +17,9 @@ import org.apache.mina.core.session.IdleStatus;
 import org.apache.mina.core.session.IoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.SocketAddress;
+import java.nio.ByteBuffer;
 
 public class ServerCoreHandler extends IoHandlerAdapter {
     private static Logger logger = LoggerFactory.getLogger(ServerCoreHandler.class);
@@ -95,13 +95,11 @@ public class ServerCoreHandler extends IoHandlerAdapter {
                                 }
                             }
 
-                            boolean receivedBackSendSucess = this.serverEventListener.onTransBuffer_CallBack(
+                            boolean receivedBackSendSuccess = this.serverEventListener.onTransBuffer_CallBack(
                                     pFromClient.getTo(), pFromClient.getFrom(), pFromClient.getDataContent(), pFromClient.getFp());
                             break;
                         }
 
-                        // TODO DEBUG
-                        UserProcessor.getInstance().__printOnline();
 
                         boolean sendOK = sendData(pFromClient);
                         if (sendOK) {

@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 public abstract class ServerLauncher {
     private static Logger logger = LoggerFactory.getLogger(ServerLauncher.class);
 
-    public static String appKey = null;
     public static int PORT = 7901;
     public static int SESION_RECYCLER_EXPIRE = 10;
 

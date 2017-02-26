@@ -1,5 +1,6 @@
-package com.rong360.im;
+package com.rong360.im.server;
 
+import net.openmob.mobileimsdk.server.ServerCoreHandler;
 import net.openmob.mobileimsdk.server.ServerLauncher;
 import net.openmob.mobileimsdk.server.qos.QoS4SendDaemonS2C;
 
@@ -14,13 +15,17 @@ public class IMServerLauncher extends ServerLauncher {
 
     public static IMServerLauncher getLauncher() throws IOException {
         if (launcher == null) {
-//            ServerLauncher.appKey = "5418023dfd98c579b6001741";
             QoS4SendDaemonS2C.DEBUG = true;
             IMServerLauncher.PORT = 7901;
             IMServerLauncher.setSenseMode(SenseMode.MODE_10S);
             launcher = new IMServerLauncher();
         }
         return launcher;
+    }
+
+    @Override
+    protected ServerCoreHandler initServerCoreHandler() {
+        return new IMServerHandler();
     }
 
     public IMServerLauncher() throws IOException {

@@ -1,7 +1,6 @@
 package com.rong360.im.request;
 
-import com.google.gson.Gson;
-import com.rong360.im.utils.Utils;
+import com.rong360.im.common.Utils;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -70,15 +69,16 @@ public class UserInfo implements HttpRequest {
         this.createTime = createTime;
     }
 
+
     @Override
-    public String toJson() {
-        Map<String, Object> jsonMap = new HashMap<>();
-        jsonMap.put("id", getId());
+    public Map<String, String> toRequestParam() {
+        Map<String, String> jsonMap = new HashMap<>();
+        jsonMap.put("id", String.valueOf(getId()));
         jsonMap.put("username", getUsername());
         jsonMap.put("password", getPassword());
         jsonMap.put("device_id", getDeviceId());
         jsonMap.put("device_info", getDeviceInfo());
         jsonMap.put("create_time", Utils.dateToString(getCreateTime()));
-        return new Gson().toJson(jsonMap);
+        return jsonMap;
     }
 }

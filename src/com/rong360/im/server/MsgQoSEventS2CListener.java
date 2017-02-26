@@ -1,4 +1,4 @@
-package com.rong360.im;
+package com.rong360.im.server;
 
 import net.openmob.mobileimsdk.server.event.MessageQoSEventListenerS2C;
 import net.openmob.mobileimsdk.server.protocol.Protocol;

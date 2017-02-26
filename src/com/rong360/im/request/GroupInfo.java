@@ -1,7 +1,6 @@
 package com.rong360.im.request;
 
-import com.google.gson.Gson;
-import com.rong360.im.utils.Utils;
+import com.rong360.im.common.Utils;
 
 import java.util.*;
 
@@ -56,13 +55,18 @@ public class GroupInfo implements HttpRequest {
         this.createTime = createTime;
     }
 
+
     @Override
-    public String toJson() {
-        Map<String, Object> jsonMap = new HashMap<>();
-        jsonMap.put("id", getId());
-        jsonMap.put("gid", getGroupId());
-        jsonMap.put("uids", getUids());
+    public Map<String, String> toRequestParam() {
+        Map<String, String> jsonMap = new HashMap<>();
+        jsonMap.put("id", String.valueOf(getId()));
+        jsonMap.put("gid", String.valueOf(getGroupId()));
+        jsonMap.put("uids", Utils.joinList(getUids(), null));
         jsonMap.put("create_time", Utils.dateToString(getCreateTime()));
-        return new Gson().toJson(jsonMap);
+        return jsonMap;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(new GroupInfo().toRequestParam());
     }
 }

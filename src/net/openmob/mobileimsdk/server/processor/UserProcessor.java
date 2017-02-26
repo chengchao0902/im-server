@@ -78,42 +78,6 @@ public class UserProcessor {
         }
     }
 
-    /**
-     * @deprecated
-     */
-    public boolean removeUser(IoSession session) {
-        synchronized (this.userSessions) {
-            if (!this.userSessions.containsValue(session)) {
-                logger.warn("[IMCORE]！用户" + ServerCoreHandler.clientInfoToString(session) + "的会话=" + "不存在在线列表中，本次removeUser没有继续.");
-            } else {
-                int user_id = getId(session);
-                if (user_id != -1) {
-                    boolean removeOK = this.userSessions.remove(Integer.valueOf(user_id)) != null;
-                    this.userNames.remove(Integer.valueOf(user_id));
-                    return removeOK;
-                }
-
-            }
-
-        }
-
-        return false;
-    }
-
-    /**
-     * @deprecated
-     */
-    public int getId(IoSession session) {
-        for (Iterator localIterator = this.userSessions.keySet().iterator(); localIterator.hasNext(); ) {
-            int id = ((Integer) localIterator.next()).intValue();
-
-            if (this.userSessions.get(Integer.valueOf(id)) == session) {
-                return id;
-            }
-        }
-        return -1;
-    }
-
     public IoSession getSession(int user_id) {
         return (IoSession) this.userSessions.get(Integer.valueOf(user_id));
     }
