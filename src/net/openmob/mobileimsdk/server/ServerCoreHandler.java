@@ -37,6 +37,146 @@ public class ServerCoreHandler extends IoHandlerAdapter {
         session.close(true);
     }
 
+    private void processReceiveData(IoSession session, Protocol pFromClient, String remoteAddress) throws Exception {
+        logger.info(">> 收到客户端" + remoteAddress + "的通用数据发送请求.");
+        // 开始回调
+        if (this.serverEventListener != null) {
+            if (!UserProcessor.isLogined(session)) {
+                replyDataForUnlogined(session, pFromClient);
+                return;
+            }
+
+            // 【C2S数据】客户端发给服务端的消息
+            if (pFromClient.getTo() == 0) {
+                if (pFromClient.getType() == ProtocolType.C.FROM_CLIENT_TYPE_OF_RECIVED) {
+                    String theFingerPrint = pFromClient.getDataContent();
+                    logger.debug("【IMCORE】【QoS机制_S2C】收到" + pFromClient.getFrom() + "发过来的指纹为" + theFingerPrint + "的应答包.");
+
+                    if (this.serverMessageQoSEventListener != null) {
+                        this.serverMessageQoSEventListener.messagesBeReceived(theFingerPrint);
+                    }
+
+                    QoS4SendDaemonS2C.getInstance().remove(theFingerPrint);
+                    return;
+                }
+
+                if (pFromClient.isQoS()) {
+                    if (QoS4ReciveDaemonC2S.getInstance().hasRecieved(pFromClient.getFp())) {
+                        if (QoS4ReciveDaemonC2S.DEBUG) {
+                            logger.debug("【IMCORE】【QoS机制】" + pFromClient.getFp() +
+                                    "已经存在于发送列表中，这是重复包，通知业务处理层收到该包罗！");
+                        }
+
+                        QoS4ReciveDaemonC2S.getInstance().addRecieved(pFromClient);
+
+                        boolean receivedBackSendSucess = replyDelegateRecievedBack(session, pFromClient);
+                        if (receivedBackSendSucess) {
+                            logger.debug("【QoS_应答_C2S】向" + pFromClient.getFrom() + "发送" + pFromClient.getFp() +
+                                    "的应答包成功了,from=" + pFromClient.getTo() + ".");
+                        }
+
+                        return;
+                    }
+
+                    QoS4ReciveDaemonC2S.getInstance().addRecieved(pFromClient);
+                    boolean receivedBackSendSucess = replyDelegateRecievedBack(session, pFromClient);
+                    if (receivedBackSendSucess) {
+                        logger.debug("【QoS_应答_C2S】向" + pFromClient.getFrom() + "发送" + pFromClient.getFp() +
+                                "的应答包成功了,from=" + pFromClient.getTo() + ".");
+                    }
+                }
+
+                boolean receivedBackSendSuccess = this.serverEventListener.onTransBuffer_CallBack(
+                        pFromClient.getTo(), pFromClient.getFrom(), pFromClient.getDataContent(), pFromClient.getFp());
+                return;
+            }
+
+
+            boolean sendOK = sendData(pFromClient);
+            if (sendOK) {
+                this.serverEventListener.onTransBuffer_C2C_CallBack(
+                        pFromClient.getTo(), pFromClient.getFrom(), pFromClient.getDataContent());
+                return;
+            }
+
+            logger.info("[IMCORE]>> 客户端" + remoteAddress + "的通用数据尝试实时发送没有成功，将交给应用层进行离线存储哦...");
+
+            boolean offlineProcessedOK = this.serverEventListener
+                    .onTransBuffer_C2C_RealTimeSendFaild_CallBack(pFromClient.getTo(),
+                            pFromClient.getFrom(), pFromClient.getDataContent(), pFromClient.getFp());
+
+            if ((pFromClient.isQoS()) && (offlineProcessedOK)) {
+                boolean receivedBackSendSucess = replyDelegateRecievedBack(session, pFromClient);
+                if (!receivedBackSendSucess) return;
+                logger.debug("【QoS_伪应答_C2S】向" + pFromClient.getFrom() + "发送" + pFromClient.getFp() +
+                        "的伪应答包成功,from=" + pFromClient.getTo() + ".");
+                return;
+            }
+
+            logger.warn("[IMCORE]>> 客户端" + remoteAddress + "的通用数据传输消息尝试实时发送没有成功，但上层应用层没有成" +
+                    "功(或者完全没有)进行离线存储，此消息将被服务端丢弃！");
+
+            return;
+        }
+
+        logger.warn("[IMCORE]>> 收到客户端" + remoteAddress + "的通用数据传输消息，但回调对象是null，回调无法继续.");
+    }
+
+    private void loginSuccess(IoSession session, int userId, PLoginInfo loginInfo) {
+        // 将用户登陆成功后的id暂存到会话对象中备用
+        session.setAttribute(UserProcessor.USER_ID_IN_SESSION_ATTRIBUTE, userId);
+        // 将用户登陆成功后的登陆名暂存到会话对象中备用
+        session.setAttribute(UserProcessor.LOGIN_NAME_IN_SESSION_ATTRIBUTE, loginInfo.getLoginName());
+        // 将用户信息放入到在线列表中（理论上：每一个存放在在线列表中的session都对应了user_id）
+        UserProcessor.getInstance().putUser(userId, session, loginInfo.getLoginName());
+
+        this.serverEventListener.onUserLoginAction_CallBack(userId, loginInfo.getLoginName(), session);
+    }
+
+    private void login(IoSession session, Protocol pFromClient, String remoteAddress) throws Exception {
+        PLoginInfo loginInfo = ProtocolFactory.parsePLoginInfo(pFromClient.getDataContent());
+        logger.info("[IMCORE]>> 客户端" + remoteAddress + "发过来的登陆信息内容是：getLoginName=" +
+                loginInfo.getLoginName() + "|getLoginPsw=" + loginInfo.getLoginPsw());
+
+        if (this.serverEventListener != null) {
+            int _try_user_id = UserProcessor.getUserIdFromSession(session);
+
+            boolean alreadyLogined = _try_user_id != -1;
+
+            if (alreadyLogined) {
+                logger.debug("[IMCORE]>> 【注意】客户端" + remoteAddress + "的会话正常且已经登陆过，而此时又重新登陆：getLoginName=" +
+                        loginInfo.getLoginName() + "|getLoginPsw=" + loginInfo.getLoginPsw());
+
+                boolean sendOK = sendData(session, ProtocolFactory.createPLoginInfoResponse(0, _try_user_id));
+                if (sendOK) {
+                    loginSuccess(session, _try_user_id, loginInfo);
+                    return;
+                }
+
+                logger.warn("[IMCORE]>> 发给客户端" + remoteAddress + "的登陆成功信息发送失败了！");
+                return;
+            }
+
+            int code = this.serverEventListener.onVerifyUserCallBack(loginInfo.getLoginName(), loginInfo.getLoginPsw(), loginInfo.getExtra());
+            if (code == 0) {
+                int user_id = getNextUserId(loginInfo);
+
+                boolean sendOK = sendData(session, ProtocolFactory.createPLoginInfoResponse(code, user_id));
+                if (sendOK) {
+                    loginSuccess(session, user_id, loginInfo);
+                    return;
+                }
+                logger.warn("[IMCORE]>> 发给客户端" + remoteAddress + "的登陆成功信息发送失败了！");
+                return;
+            }
+
+            sendData(session, ProtocolFactory.createPLoginInfoResponse(code, -1));
+            return;
+        }
+
+        logger.warn("[IMCORE]>> 收到客户端" + remoteAddress + "登陆信息，但回调对象是null，没有进行回调.");
+    }
+
     public void messageReceived(IoSession session, Object message) throws Exception {
         if ((message instanceof IoBuffer)) {
             IoBuffer buffer = (IoBuffer) message;
@@ -46,89 +186,7 @@ public class ServerCoreHandler extends IoHandlerAdapter {
             switch (pFromClient.getType()) {
                 case ProtocolType.C.FROM_CLIENT_TYPE_OF_RECIVED:
                 case ProtocolType.C.FROM_CLIENT_TYPE_OF_COMMON$DATA: {
-                    logger.info(">> 收到客户端" + remoteAddress + "的通用数据发送请求.");
-
-                    // 开始回调
-                    if (this.serverEventListener != null) {
-                        if (!UserProcessor.isLogined(session)) {
-                            replyDataForUnlogined(session, pFromClient);
-                            return;
-                        }
-
-                        // 【C2S数据】客户端发给服务端的消息
-                        if (pFromClient.getTo() == 0) {
-                            if (pFromClient.getType() == ProtocolType.C.FROM_CLIENT_TYPE_OF_RECIVED) {
-                                String theFingerPrint = pFromClient.getDataContent();
-                                logger.debug("【IMCORE】【QoS机制_S2C】收到" + pFromClient.getFrom() + "发过来的指纹为" + theFingerPrint + "的应答包.");
-
-                                if (this.serverMessageQoSEventListener != null) {
-                                    this.serverMessageQoSEventListener.messagesBeReceived(theFingerPrint);
-                                }
-
-                                QoS4SendDaemonS2C.getInstance().remove(theFingerPrint);
-                                break;
-                            }
-
-                            if (pFromClient.isQoS()) {
-                                if (QoS4ReciveDaemonC2S.getInstance().hasRecieved(pFromClient.getFp())) {
-                                    if (QoS4ReciveDaemonC2S.DEBUG) {
-                                        logger.debug("【IMCORE】【QoS机制】" + pFromClient.getFp() +
-                                                "已经存在于发送列表中，这是重复包，通知业务处理层收到该包罗！");
-                                    }
-
-                                    QoS4ReciveDaemonC2S.getInstance().addRecieved(pFromClient);
-
-                                    boolean receivedBackSendSucess = replyDelegateRecievedBack(session, pFromClient);
-                                    if (receivedBackSendSucess) {
-                                        logger.debug("【QoS_应答_C2S】向" + pFromClient.getFrom() + "发送" + pFromClient.getFp() +
-                                                "的应答包成功了,from=" + pFromClient.getTo() + ".");
-                                    }
-
-                                    return;
-                                }
-
-                                QoS4ReciveDaemonC2S.getInstance().addRecieved(pFromClient);
-                                boolean receivedBackSendSucess = replyDelegateRecievedBack(session, pFromClient);
-                                if (receivedBackSendSucess) {
-                                    logger.debug("【QoS_应答_C2S】向" + pFromClient.getFrom() + "发送" + pFromClient.getFp() +
-                                            "的应答包成功了,from=" + pFromClient.getTo() + ".");
-                                }
-                            }
-
-                            boolean receivedBackSendSuccess = this.serverEventListener.onTransBuffer_CallBack(
-                                    pFromClient.getTo(), pFromClient.getFrom(), pFromClient.getDataContent(), pFromClient.getFp());
-                            break;
-                        }
-
-
-                        boolean sendOK = sendData(pFromClient);
-                        if (sendOK) {
-                            this.serverEventListener.onTransBuffer_C2C_CallBack(
-                                    pFromClient.getTo(), pFromClient.getFrom(), pFromClient.getDataContent());
-                            break;
-                        }
-
-                        logger.info("[IMCORE]>> 客户端" + remoteAddress + "的通用数据尝试实时发送没有成功，将交给应用层进行离线存储哦...");
-
-                        boolean offlineProcessedOK = this.serverEventListener
-                                .onTransBuffer_C2C_RealTimeSendFaild_CallBack(pFromClient.getTo(),
-                                        pFromClient.getFrom(), pFromClient.getDataContent(), pFromClient.getFp());
-
-                        if ((pFromClient.isQoS()) && (offlineProcessedOK)) {
-                            boolean receivedBackSendSucess = replyDelegateRecievedBack(session, pFromClient);
-                            if (!receivedBackSendSucess) break;
-                            logger.debug("【QoS_伪应答_C2S】向" + pFromClient.getFrom() + "发送" + pFromClient.getFp() +
-                                    "的伪应答包成功,from=" + pFromClient.getTo() + ".");
-                            break;
-                        }
-
-                        logger.warn("[IMCORE]>> 客户端" + remoteAddress + "的通用数据传输消息尝试实时发送没有成功，但上层应用层没有成" +
-                                "功(或者完全没有)进行离线存储，此消息将被服务端丢弃！");
-
-                        break;
-                    }
-
-                    logger.warn("[IMCORE]>> 收到客户端" + remoteAddress + "的通用数据传输消息，但回调对象是null，回调无法继续.");
+                    processReceiveData(session, pFromClient, remoteAddress);
                     break;
                 }
                 case ProtocolType.C.FROM_CLIENT_TYPE_OF_KEEP$ALIVE: {
@@ -141,67 +199,11 @@ public class ServerCoreHandler extends IoHandlerAdapter {
                     break;
                 }
                 case ProtocolType.C.FROM_CLIENT_TYPE_OF_LOGIN: {
-                    PLoginInfo loginInfo = ProtocolFactory.parsePLoginInfo(pFromClient.getDataContent());
-                    logger.info("[IMCORE]>> 客户端" + remoteAddress + "发过来的登陆信息内容是：getLoginName=" +
-                            loginInfo.getLoginName() + "|getLoginPsw=" + loginInfo.getLoginPsw());
-
-                    if (this.serverEventListener != null) {
-                        int _try_user_id = UserProcessor.getUserIdFromSession(session);
-
-                        boolean alreadyLogined = _try_user_id != -1;
-
-                        if (alreadyLogined) {
-                            logger.debug("[IMCORE]>> 【注意】客户端" + remoteAddress + "的会话正常且已经登陆过，而此时又重新登陆：getLoginName=" +
-                                    loginInfo.getLoginName() + "|getLoginPsw=" + loginInfo.getLoginPsw());
-
-                            boolean sendOK = sendData(session, ProtocolFactory.createPLoginInfoResponse(0, _try_user_id));
-                            if (sendOK) {
-                                // 将用户登陆成功后的id暂存到会话对象中备用
-                                session.setAttribute(UserProcessor.USER_ID_IN_SESSION_ATTRIBUTE, _try_user_id);
-                                // 将用户登陆成功后的登陆名暂存到会话对象中备用
-                                session.setAttribute(UserProcessor.LOGIN_NAME_IN_SESSION_ATTRIBUTE, loginInfo.getLoginName());
-                                // 将用户信息放入到在线列表中（理论上：每一个存放在在线列表中的session都对应了user_id）
-                                UserProcessor.getInstance().putUser(_try_user_id, session, loginInfo.getLoginName());
-
-                                this.serverEventListener.onUserLoginAction_CallBack(_try_user_id, loginInfo.getLoginName(), session);
-                                break;
-                            }
-
-                            logger.warn("[IMCORE]>> 发给客户端" + remoteAddress + "的登陆成功信息发送失败了！");
-                            break;
-                        }
-
-                        int code = this.serverEventListener.onVerifyUserCallBack(loginInfo.getLoginName(), loginInfo.getLoginPsw(), loginInfo.getExtra());
-                        if (code == 0) {
-                            int user_id = getNextUserId(loginInfo);
-
-                            boolean sendOK = sendData(session, ProtocolFactory.createPLoginInfoResponse(code, user_id));
-                            if (sendOK) {
-                                // 将用户登陆成功后的id暂存到会话对象中备用
-                                session.setAttribute(UserProcessor.USER_ID_IN_SESSION_ATTRIBUTE, user_id);
-                                // 将用户登陆成功后的登陆名暂存到会话对象中备用
-                                session.setAttribute(UserProcessor.LOGIN_NAME_IN_SESSION_ATTRIBUTE, loginInfo.getLoginName());
-                                // 将用户信息放入到在线列表中（理论上：每一个存放在在线列表中的session都对应了user_id）
-                                UserProcessor.getInstance().putUser(user_id, session, loginInfo.getLoginName());
-
-                                this.serverEventListener.onUserLoginAction_CallBack(user_id, loginInfo.getLoginName(), session);
-
-                                break;
-                            }
-                            logger.warn("[IMCORE]>> 发给客户端" + remoteAddress + "的登陆成功信息发送失败了！");
-                            break;
-                        }
-
-                        sendData(session, ProtocolFactory.createPLoginInfoResponse(code, -1));
-                        break;
-                    }
-
-                    logger.warn("[IMCORE]>> 收到客户端" + remoteAddress + "登陆信息，但回调对象是null，没有进行回调.");
+                    login(session, pFromClient, remoteAddress);
                     break;
                 }
                 case ProtocolType.C.FROM_CLIENT_TYPE_OF_LOGOUT: {
                     logger.info("[IMCORE]>> 收到客户端" + remoteAddress + "的退出登陆请求.");
-
                     session.close(true);
                     break;
                 }
