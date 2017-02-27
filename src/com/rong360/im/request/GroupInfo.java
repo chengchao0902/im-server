@@ -11,12 +11,21 @@ import java.util.*;
 public class GroupInfo implements HttpRequest {
     private int id;
     private int groupId;
+    private String name;
     private List<Integer> uids;
     private Date createTime;
 
     public GroupInfo() {
         uids = new ArrayList<>();
         createTime = new Date();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public void addUser(int uid) {
@@ -60,6 +69,7 @@ public class GroupInfo implements HttpRequest {
     public Map<String, String> toRequestParam() {
         Map<String, String> jsonMap = new HashMap<>();
         jsonMap.put("id", String.valueOf(getId()));
+        jsonMap.put("name", getName());
         jsonMap.put("gid", String.valueOf(getGroupId()));
         jsonMap.put("uids", Utils.joinList(getUids(), null));
         jsonMap.put("create_time", Utils.dateToString(getCreateTime()));

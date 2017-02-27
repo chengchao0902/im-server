@@ -1,13 +1,9 @@
 package com.rong360.im.service;
 
-import com.rong360.im.request.UserInfo;
 import com.rong360.im.service.remote.HSessionService;
 import com.rong360.im.service.remote.HUserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static com.rong360.im.common.CheckArgs.Strings;
 
@@ -19,15 +15,13 @@ public class UserService {
     private HUserService remoteUser = new HUserService();
     private HSessionService remoteSession = new HSessionService();
 
-    public UserInfo login(String username, String password) {
+    public int login(String username, String password) {
         if (Strings.isAnyEmpty(username, password)) {
             logger.warn("[Login]用户名或密码为空，username：{}, password: {}", username, password);
-            return null;
+            return -1;
         }
-        Map<String, String> params = new HashMap<>();
-        params.put("username", username);
-        params.put("password", password);
-        return remoteUser.get(params);
+        //todo
+        return remoteUser.login(null, username, null, null);
     }
 
     public boolean saveSession(int userId, String sessionId) {

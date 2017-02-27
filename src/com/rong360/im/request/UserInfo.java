@@ -12,21 +12,50 @@ import java.util.Map;
 public class UserInfo implements HttpRequest {
     private int id;
     private String username;
+    private String phone;
+    private String sessionId;
     private String password;
     private String deviceId;
     private String deviceInfo;
     private Date createTime;
+    private Date updateTime;
 
     public UserInfo() {
         createTime = new Date();
+        updateTime = new Date();
     }
 
     public int getId() {
         return id;
     }
 
+
     public void setId(int id) {
         this.id = id;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
     }
 
     public String getUsername() {
@@ -75,10 +104,13 @@ public class UserInfo implements HttpRequest {
         Map<String, String> jsonMap = new HashMap<>();
         jsonMap.put("id", String.valueOf(getId()));
         jsonMap.put("username", getUsername());
+        jsonMap.put("phone", getPhone());
+        jsonMap.put("sid", getSessionId());
         jsonMap.put("password", getPassword());
         jsonMap.put("device_id", getDeviceId());
         jsonMap.put("device_info", getDeviceInfo());
         jsonMap.put("create_time", Utils.dateToString(getCreateTime()));
+        jsonMap.put("update_time", Utils.dateToString(getUpdateTime()));
         return jsonMap;
     }
 }

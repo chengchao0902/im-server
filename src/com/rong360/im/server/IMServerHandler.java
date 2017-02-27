@@ -11,7 +11,7 @@ import net.openmob.mobileimsdk.server.protocol.c.PLoginInfo;
  */
 public class IMServerHandler extends ServerCoreHandler {
 
-    private HttpService<UserInfo, Integer> userService = new HUserService();
+    private HUserService userService = new HUserService();
 
     @Override
     protected int getNextUserId(PLoginInfo loginInfo) {
@@ -19,6 +19,6 @@ public class IMServerHandler extends ServerCoreHandler {
         userInfo.setUsername(loginInfo.getLoginName());
         userInfo.setPassword(loginInfo.getLoginPsw());
         //TODO get deviceinfo and deviceid from loginInfo.getExtra()
-        return userService.send(userInfo);
+        return 0;
     }
 }

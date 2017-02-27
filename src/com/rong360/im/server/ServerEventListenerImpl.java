@@ -19,8 +19,8 @@ public class ServerEventListenerImpl implements ServerEventListener {
     @Override
     public int onVerifyUserCallBack(String loginName, String password, String extra) {
         logger.info("[IM][Login]验证用户 " + loginName + "登录开始！");
-        UserInfo userInfo = userService.login(loginName, password);
-        return userInfo == null ? -1 : 0;
+        int uid = userService.login(loginName, password);
+        return uid == -1 ? -1 : 0;
     }
 
     @Override

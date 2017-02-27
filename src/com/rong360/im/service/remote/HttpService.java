@@ -1,42 +1,51 @@
 package com.rong360.im.service.remote;
 
+import com.google.gson.Gson;
+import com.rong360.im.common.CheckArgs;
 import com.rong360.im.common.SimpleHttpClient;
 import com.rong360.im.request.HttpRequest;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Created by chengchao on 2017/2/25.
  */
-public abstract class HttpService<T extends HttpRequest, Response> {
+public abstract class HttpService {
 
-    private String getUrl;
-
-    private String sendUrl;
-
-    public HttpService(String getUrl, String sendUrl) {
-        this.getUrl = getUrl;
-        this.sendUrl = sendUrl;
-    }
 
     private SimpleHttpClient httpClient() {
         return SimpleHttpClient.getDefaultHttpClient();
     }
 
-    public T get(Map<String, String> params) {
-        String body = httpClient().post(this.getUrl, params);
-        return parseToObject(body);
+    public Map<String, Object> get(String url) {
+        String response = httpClient().get(url);
+        return toMap(response);
     }
 
-    public Response send(T data) {
-        if (data == null) {
-            return null;
+    public Map<String, Object> post(String url, Map<String, String> params) {
+        String response = httpClient().post(url, params);
+        return toMap(response);
+    }
+
+    private Map<String, Object> toMap(String response) {
+        return new Gson().fromJson(response, HashMap.class);
+    }
+
+    public static Map<String, String> buildMapParams(String... kv) {
+        if (kv == null) return null;
+        Map<String, String> params = new HashMap<>();
+        for (int i = 0; i < kv.length - 1; i++) {
+            params.put(kv[i], kv[++i]);
         }
-        String body = httpClient().post(this.sendUrl, data.toRequestParam());
-        return isSendSuccess(body);
+        if (kv.length % 2 != 0) {
+            params.put(kv[kv.length -1], "");
+        }
+        return params;
+
     }
 
-    protected abstract Response isSendSuccess(String response);
 
-    protected abstract T parseToObject(String response);
+
+
 }
