@@ -34,7 +34,7 @@ public class IMServerLauncher extends ServerLauncher {
 
     @Override
     protected void initListeners() {
-        this.setServerEventListener(new ServerEventListenerImpl());
+        this.setServerEventListener(new ServerEventListenerImpl(this));
         this.setServerMessageQoSEventListener(new MsgQoSEventS2CListener());
     }
 

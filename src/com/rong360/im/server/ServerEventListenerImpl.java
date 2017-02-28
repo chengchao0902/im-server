@@ -1,31 +1,56 @@
 package com.rong360.im.server;
 
-import com.rong360.im.service.MessageService;
-import com.rong360.im.service.UserService;
+import com.rong360.im.request.Message;
+import com.rong360.im.service.remote.HMessageService;
+import com.rong360.im.service.remote.HUserService;
+import net.openmob.mobileimsdk.server.ServerLauncher;
 import net.openmob.mobileimsdk.server.event.ServerEventListener;
+import net.openmob.mobileimsdk.server.protocol.Protocol;
 import org.apache.mina.core.session.IoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * Created by chengchao on 2017/2/25.
  */
 public class ServerEventListenerImpl implements ServerEventListener {
     private static Logger logger = LoggerFactory.getLogger(ServerEventListenerImpl.class);
-    private UserService userService = new UserService();
-    private MessageService messageService = new MessageService();
+    private HUserService userService = new HUserService();
+    private HMessageService messageService = new HMessageService();
+    private ServerLauncher launcher;
+
+    public ServerEventListenerImpl(ServerLauncher launcher) {
+        this.launcher = launcher;
+    }
 
     @Override
     public int onVerifyUserCallBack(String loginName, String password, String extra) {
         logger.info("[IM][Login]验证用户 " + loginName + "登录开始！");
-        int uid = userService.login(loginName, password);
+        //todo 从 extra中解析出device_id和device_info
+        int uid = userService.login(null, loginName, null, null);
         return uid == -1 ? -1 : 0;
     }
 
     @Override
     public void onUserLoginAction_CallBack(int userId, String loginName, IoSession session) {
+        //在这获取离线消息，并发送出去
         logger.info("[IM][Login]用户 {} 登录成功！", loginName);
-        userService.saveSession(userId, String.valueOf(session.getId()));
+        List<Message> messages = messageService.getOfflineMsg(userId);
+        for (Message message : messages) {
+            boolean sendOk;
+            try {
+                sendOk = launcher.sendData(message.getFromUid(), userId, message.getMessage(), true, message.getGroupId());
+            } catch (Exception e) {
+                logger.error("[IM][Offline]发送离线消息出错 message_id: {}", message.getId());
+                sendOk = false;
+            }
+            if (!sendOk) {
+                logger.warn("[IM][Offline]发送离线消息失败 message_id: {}", message.getId());
+                messageService.saveOfflineMsg(message);
+            }
+        }
     }
 
     @Override
@@ -43,11 +68,15 @@ public class ServerEventListenerImpl implements ServerEventListener {
     @Override
     public void onTransBuffer_C2C_CallBack(int paramInt1, int paramInt2, String paramString) {
         System.out.println("=========================onTransBuffer_C2C_CallBack");
-
     }
 
     @Override
-    public boolean onTransBuffer_C2C_RealTimeSendFaild_CallBack(int toUserId, int fromUserId, String message, String fp) {
-        return messageService.saveOfflineMessage(fromUserId, toUserId, message);
+    public boolean onTransBuffer_C2C_RealTimeSendFaild_CallBack(Protocol pFromClient) {
+        Message message = new Message();
+        message.setFromUid(pFromClient.getFrom());
+        message.addToUid(pFromClient.getTo());
+        message.setGroupId(pFromClient.getGid());
+        message.setMessage(pFromClient.getDataContent());
+        return messageService.saveOfflineMsg(message);
     }
 }

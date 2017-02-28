@@ -10,6 +10,7 @@ public class Protocol {
     private String dataContent = null;
     private int from = -1;
     private int to = -1;
+    private int gid = -1;
     private String fp = null;
     private boolean QoS = false;
     private transient int retryCount = 0;
@@ -31,6 +32,14 @@ public class Protocol {
             this.fp = genFingerPrint();
         else
             this.fp = fingerPrint;
+    }
+
+    public int getGid() {
+        return gid;
+    }
+
+    public void setGid(int gid) {
+        this.gid = gid;
     }
 
     public int getType() {
@@ -81,6 +90,10 @@ public class Protocol {
         return this.QoS;
     }
 
+    public boolean isGroup() {
+        return gid != -1;
+    }
+
     public String toGsonString() {
         return new Gson().toJson(this);
     }
@@ -93,6 +106,7 @@ public class Protocol {
         // 克隆一个Protocal对象（该对象已重置retryCount数值为0）
         Protocol cloneP = new Protocol(getType(),
                 getDataContent(), getFrom(), getTo(), isQoS(), getFp());
+        cloneP.setGid(getGid());
         return cloneP;
     }
 

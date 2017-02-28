@@ -1,9 +1,5 @@
 package net.openmob.mobileimsdk.server;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.concurrent.Executors;
-
 import net.openmob.mobileimsdk.server.event.MessageQoSEventListenerS2C;
 import net.openmob.mobileimsdk.server.event.ServerEventListener;
 import net.openmob.mobileimsdk.server.protocol.Protocol;
@@ -17,6 +13,10 @@ import org.apache.mina.transport.socket.DatagramSessionConfig;
 import org.apache.mina.transport.socket.nio.NioDatagramAcceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.concurrent.Executors;
 
 public abstract class ServerLauncher {
     private static Logger logger = LoggerFactory.getLogger(ServerLauncher.class);
@@ -106,18 +106,18 @@ public abstract class ServerLauncher {
         this.serverCoreHandler.setServerMessageQoSEventListener(serverMessageQoSEventListener);
     }
 
-    public static boolean sendData(int from_user_id, int to_user_id, String dataContent) throws Exception {
-        return ServerCoreHandler.sendData(from_user_id, to_user_id, dataContent);
+    public static boolean sendData(int from_user_id, int to_user_id, String dataContent, int groupId) throws Exception {
+        return ServerCoreHandler.sendData(from_user_id, to_user_id, dataContent, groupId);
     }
 
-    public static boolean sendData(int from_user_id, int to_user_id, String dataContent, boolean QoS) throws Exception {
-        return ServerCoreHandler.sendData(from_user_id, to_user_id, dataContent, QoS);
+    public static boolean sendData(int from_user_id, int to_user_id, String dataContent, boolean QoS, int groupId) throws Exception {
+        return ServerCoreHandler.sendData(from_user_id, to_user_id, dataContent, QoS, groupId);
     }
 
     public static boolean sendData(int from_user_id, int to_user_id
-            , String dataContent, boolean QoS, String fingerPrint) throws Exception {
+            , String dataContent, boolean QoS, String fingerPrint, int groupId) throws Exception {
         return ServerCoreHandler.sendData(from_user_id, to_user_id, dataContent,
-                QoS, fingerPrint);
+                QoS, fingerPrint, groupId);
     }
 
     public static boolean sendData(Protocol p) throws Exception {

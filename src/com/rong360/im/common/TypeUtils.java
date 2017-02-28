@@ -1,4 +1,4 @@
-package tools.utils;
+package com.rong360.im.common;
 
 import java.text.DateFormat;
 import java.text.ParseException;

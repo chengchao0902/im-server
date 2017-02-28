@@ -9,6 +9,7 @@ public interface ProtocolType {
         int FROM_CLIENT_TYPE_OF_LOGOUT = 3;
         int FROM_CLIENT_TYPE_OF_RECIVED = 4;
         int FROM_CLIENT_TYPE_OF_ECHO = 5;
+        int FROM_CLIENT_TYPE_OF_COMMON$GROUP = 6;
     }
 
     interface S {

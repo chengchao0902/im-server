@@ -1,7 +1,6 @@
 package com.rong360.im.service.remote;
 
 import com.google.gson.Gson;
-import com.rong360.im.common.CheckArgs;
 import com.rong360.im.common.Utils;
 import com.rong360.im.request.UserInfo;
 
@@ -28,24 +27,15 @@ public class HUserService extends HttpService {
         request.put("device_info", deviceInfo);
         request.put("sid", sessionId);
         Map<String, Object> response = post(LOGIN, request);
-        /*
-         * {
-                "error": 0,
-                "msg" : "success",
-                "data": {
-                     "uid": "1000001"
-                 }
-         }
-         */
         int error = (int) response.get("error");
         if (0 != error) {
             return -1;
         }
-        return Integer.valueOf(((Map)(response.get("data"))).get("uid").toString());
+        return Integer.valueOf(((Map) (response.get("data"))).get("uid").toString());
     }
 
     public UserInfo getUserInfo(int userId) {
-        Map<String, Object> response = post(USERINFO,buildMapParams("uid", String.valueOf(userId)));
+        Map<String, Object> response = post(USERINFO, buildMapParams("uid", String.valueOf(userId)));
         int error = (int) response.get("error");
         if (0 != error) {
             return null;
@@ -79,9 +69,9 @@ public class HUserService extends HttpService {
         if (0 != error) {
             return null;
         }
-        Map<String, Object> list = (Map<String, Object>) ((Map)response.get("data")).get("list");
+        Map<String, Object> list = (Map<String, Object>) ((Map) response.get("data")).get("list");
         List<UserInfo> userInfoList = new ArrayList<>();
-        for (Map.Entry<String, Object> entry:list.entrySet()) {
+        for (Map.Entry<String, Object> entry : list.entrySet()) {
             UserInfo userInfo = new UserInfo();
             userInfo.setId(Integer.valueOf(entry.getKey()));
             Map userInfoMap = (Map) entry.getValue();
@@ -108,7 +98,7 @@ public class HUserService extends HttpService {
                 "         }\n" +
                 "         }";
         Map<String, Object> response = new Gson().fromJson(str, HashMap.class);
-        System.out.println(((Map)(response.get("data"))).get("uids").getClass());
+        System.out.println(((Map) (response.get("data"))).get("uids").getClass());
     }
 
 }

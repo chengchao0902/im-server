@@ -21,6 +21,9 @@ import org.slf4j.LoggerFactory;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 
+/**
+ *
+ */
 public class ServerCoreHandler extends IoHandlerAdapter {
     private static Logger logger = LoggerFactory.getLogger(ServerCoreHandler.class);
 
@@ -37,7 +40,7 @@ public class ServerCoreHandler extends IoHandlerAdapter {
         session.close(true);
     }
 
-    private void processReceiveData(IoSession session, Protocol pFromClient, String remoteAddress) throws Exception {
+    public void processReceiveData(IoSession session, Protocol pFromClient, String remoteAddress) throws Exception {
         logger.info(">> 收到客户端" + remoteAddress + "的通用数据发送请求.");
         // 开始回调
         if (this.serverEventListener != null) {
@@ -101,9 +104,7 @@ public class ServerCoreHandler extends IoHandlerAdapter {
 
             logger.info("[IMCORE]>> 客户端" + remoteAddress + "的通用数据尝试实时发送没有成功，将交给应用层进行离线存储哦...");
 
-            boolean offlineProcessedOK = this.serverEventListener
-                    .onTransBuffer_C2C_RealTimeSendFaild_CallBack(pFromClient.getTo(),
-                            pFromClient.getFrom(), pFromClient.getDataContent(), pFromClient.getFp());
+            boolean offlineProcessedOK = this.serverEventListener.onTransBuffer_C2C_RealTimeSendFaild_CallBack(pFromClient);
 
             if ((pFromClient.isQoS()) && (offlineProcessedOK)) {
                 boolean receivedBackSendSucess = replyDelegateRecievedBack(session, pFromClient);
@@ -177,6 +178,10 @@ public class ServerCoreHandler extends IoHandlerAdapter {
         logger.warn("[IMCORE]>> 收到客户端" + remoteAddress + "登陆信息，但回调对象是null，没有进行回调.");
     }
 
+    public void sendGroupMessage(IoSession session, Protocol pFromClient, String remoteAddress) throws Exception {
+        logger.warn("[IMCORE]>> 收到客户端" + remoteAddress + "发送的群消息, 群号为：" + pFromClient.getTo());
+    }
+
     public void messageReceived(IoSession session, Object message) throws Exception {
         if ((message instanceof IoBuffer)) {
             IoBuffer buffer = (IoBuffer) message;
@@ -187,6 +192,10 @@ public class ServerCoreHandler extends IoHandlerAdapter {
                 case ProtocolType.C.FROM_CLIENT_TYPE_OF_RECIVED:
                 case ProtocolType.C.FROM_CLIENT_TYPE_OF_COMMON$DATA: {
                     processReceiveData(session, pFromClient, remoteAddress);
+                    break;
+                }
+                case ProtocolType.C.FROM_CLIENT_TYPE_OF_COMMON$GROUP: {
+                    sendGroupMessage(session, pFromClient, remoteAddress);
                     break;
                 }
                 case ProtocolType.C.FROM_CLIENT_TYPE_OF_KEEP$ALIVE: {
@@ -297,16 +306,18 @@ public class ServerCoreHandler extends IoHandlerAdapter {
         this.serverMessageQoSEventListener = serverMessageQoSEventListener;
     }
 
-    static boolean sendData(int from_user_id, int to_user_id, String dataContent) throws Exception {
-        return sendData(from_user_id, to_user_id, dataContent, false);
+    static boolean sendData(int from_user_id, int to_user_id, String dataContent, int groupId) throws Exception {
+        return sendData(from_user_id, to_user_id, dataContent, false, groupId);
     }
 
-    static boolean sendData(int from_user_id, int to_user_id, String dataContent, boolean QoS) throws Exception {
-        return sendData(from_user_id, to_user_id, dataContent, QoS, null);
+    static boolean sendData(int from_user_id, int to_user_id, String dataContent, boolean QoS, int groupId) throws Exception {
+        return sendData(from_user_id, to_user_id, dataContent, QoS, null, groupId);
     }
 
-    static boolean sendData(int from_user_id, int to_user_id, String dataContent, boolean QoS, String fingerPrint) throws Exception {
-        return sendData(ProtocolFactory.createCommonData(dataContent, from_user_id, to_user_id, QoS, fingerPrint));
+    static boolean sendData(int from_user_id, int to_user_id, String dataContent, boolean QoS, String fingerPrint, int groupId) throws Exception {
+        Protocol protocol = ProtocolFactory.createCommonData(dataContent, from_user_id, to_user_id, QoS, fingerPrint);
+        protocol.setGid(groupId);
+        return sendData(protocol);
     }
 
     static boolean sendData(Protocol p) throws Exception {
