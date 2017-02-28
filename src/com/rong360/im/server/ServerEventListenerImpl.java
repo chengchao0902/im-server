@@ -1,6 +1,5 @@
 package com.rong360.im.server;
 
-import com.rong360.im.request.UserInfo;
 import com.rong360.im.service.MessageService;
 import com.rong360.im.service.UserService;
 import net.openmob.mobileimsdk.server.event.ServerEventListener;
