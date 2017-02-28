@@ -2,10 +2,11 @@
 package net.openmob.mobileimsdk.server.event;
 
 import net.openmob.mobileimsdk.server.protocol.Protocol;
+import net.openmob.mobileimsdk.server.protocol.c.PLoginInfo;
 import org.apache.mina.core.session.IoSession;
 
 public interface ServerEventListener {
-    int onVerifyUserCallBack(String paramString1, String paramString2, String extra);
+    int onVerifyUserCallBack(PLoginInfo loginInfo, IoSession session);
 
     void onUserLoginAction_CallBack(int paramInt, String paramString, IoSession paramIoSession);
 

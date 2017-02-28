@@ -1,50 +1,32 @@
 package com.rong360.im.rest;
 
-import com.rong360.im.common.TypeUtils;
-import org.json.JSONObject;
 import org.restlet.Component;
 import org.restlet.data.Protocol;
-import org.restlet.ext.json.JsonRepresentation;
-import org.restlet.representation.Representation;
-import org.restlet.resource.ClientResource;
-
-import java.io.IOException;
+import org.restlet.resource.ServerResource;
 
 /**
  * Created by chengchao on 2017/2/28.
  */
 public final class RestMain {
 
-    public static void main(String[] args) throws IOException {
-        ClientResource client = new ClientResource("http://localhost:8888/sender");
+    private int port;
+    private Component component;
 
-        //获取返回结果
-        Representation result = client.post(null);
-
-        JsonRepresentation jr = new JsonRepresentation(result);
-        JSONObject movie = jr.getJsonObject();
-        System.out.printf("name:%s size:%d minutes:%d",
-                movie.get("name"),
-                movie.get("size"),
-                movie.get("minutes"));
-
-
+    public RestMain(int port) {
+        this.port = port;
+        this.component = new Component();
+        this.component.getServers().add(Protocol.HTTP, this.port);
     }
 
-    public void main1(String[] args) throws Exception {
-        int port = 8888;
-        if (args != null && args.length != 0) {
-            for (int i = 0; i < args.length; i++) {
-                if ("-p".equals(args[i]) && i < args.length - 1) {
-                    port = TypeUtils.toInt(args[i + 1], port);
-                }
-            }
-        }
+    public void attach(String path, Class<? extends ServerResource> resourceClass) {
+        this.component.getDefaultHost().attach(path, resourceClass);
+    }
 
-        Component component = new Component();
-        component.getServers().add(Protocol.HTTP, port);
-
-        component.getDefaultHost().attach("/sender", MessageSenderResource.class);
+    public void startup() throws Exception {
         component.start();
+    }
+
+    public void stop() throws Exception {
+        this.component.stop();
     }
 }

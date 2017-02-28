@@ -1,8 +1,10 @@
 package com.rong360.im.service.remote;
 
-import com.google.gson.Gson;
+import com.rong360.im.Config;
+import com.rong360.im.common.TypeUtils;
 import com.rong360.im.common.Utils;
 import com.rong360.im.request.UserInfo;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,11 +16,11 @@ import java.util.Map;
  */
 public class HUserService extends HttpService {
 
-    private static final String LOGIN = "http://im.rong360.com/user/login";
-    private static final String LOGOUT = "http://im.rong360.com/user/unlogin";
-    private static final String USERINFO = "http://im.rong360.com/user/userinfo";
-    private static final String SAVE_FRIEND = "http://im.rong360.com/user/savefriend";
-    private static final String FRIEND_LIST = "http://im.rong360.com/user/getfriends";
+    private static final String LOGIN = Config.getString("http.user.login");
+    private static final String LOGOUT = Config.getString("http.user.logout");
+    private static final String USERINFO = Config.getString("http.user.info");
+    private static final String SAVE_FRIEND = Config.getString("http.user.save_friend");
+    private static final String FRIEND_LIST = Config.getString("http.user.friend_list");
 
     public int login(String deviceId, String phone, String deviceInfo, String sessionId) {
         Map<String, String> request = new HashMap<>();
@@ -26,79 +28,66 @@ public class HUserService extends HttpService {
         request.put("phone", phone);
         request.put("device_info", deviceInfo);
         request.put("sid", sessionId);
-        Map<String, Object> response = post(LOGIN, request);
-        int error = (int) response.get("error");
+        JSONObject response = post(LOGIN, request);
+        int error = response.getInt("error");
         if (0 != error) {
             return -1;
         }
-        return Integer.valueOf(((Map) (response.get("data"))).get("uid").toString());
+        return response.getJSONObject("data").getInt("uid");
     }
 
     public UserInfo getUserInfo(int userId) {
-        Map<String, Object> response = post(USERINFO, buildMapParams("uid", String.valueOf(userId)));
-        int error = (int) response.get("error");
+        JSONObject response = post(USERINFO, buildMapParams("uid", String.valueOf(userId)));
+        int error = response.getInt("error");
         if (0 != error) {
             return null;
         }
-        Map dataMap = (Map) response.get("data");
+        JSONObject dataMap = response.getJSONObject("data");
         UserInfo userInfo = new UserInfo();
-        userInfo.setId(Integer.valueOf(dataMap.get("uid").toString()));
-        userInfo.setPhone(dataMap.get("phone").toString());
-        userInfo.setSessionId(dataMap.get("sid").toString());
-        userInfo.setDeviceId(dataMap.get("device_id").toString());
-        userInfo.setDeviceInfo(dataMap.get("device_info").toString());
-        userInfo.setCreateTime(Utils.stringToDate(dataMap.get("create_time").toString()));
+        userInfo.setId(dataMap.getInt("uid"));
+        userInfo.setPhone(dataMap.getString("phone"));
+        userInfo.setSessionId(dataMap.getString("sid"));
+        userInfo.setDeviceId(dataMap.getString("device_id"));
+        userInfo.setDeviceInfo(dataMap.getString("device_info"));
+        userInfo.setCreateTime(Utils.stringToDate(dataMap.getString("create_time")));
         return userInfo;
     }
 
     public boolean saveFriend(int userId, int friendId) {
-        Map<String, Object> response = post(SAVE_FRIEND, buildMapParams("uid", String.valueOf(userId), "friend_id", String.valueOf(friendId)));
-        int error = (int) response.get("error");
+        JSONObject response = post(SAVE_FRIEND, buildMapParams("uid", String.valueOf(userId), "friend_id", String.valueOf(friendId)));
+        int error = response.getInt("error");
         return error == 0;
     }
 
     public boolean logout(int userId) {
-        Map<String, Object> response = post(LOGOUT, buildMapParams("uid", String.valueOf(userId)));
-        int error = (int) response.get("error_code");
+        JSONObject response = post(LOGOUT, buildMapParams("uid", String.valueOf(userId)));
+        int error = response.getInt("error");
         return error == 0;
     }
 
     public List<UserInfo> getFrindes(int userId) {
-        Map<String, Object> response = post(FRIEND_LIST, buildMapParams("uid", String.valueOf(userId)));
-        int error = (int) response.get("error_code");
+        JSONObject response = post(FRIEND_LIST, buildMapParams("uid", String.valueOf(userId)));
+        int error = response.getInt("error");
         if (0 != error) {
             return null;
         }
-        Map<String, Object> list = (Map<String, Object>) ((Map) response.get("data")).get("list");
+        JSONObject list = response.getJSONObject("data").getJSONObject("list");
         List<UserInfo> userInfoList = new ArrayList<>();
-        for (Map.Entry<String, Object> entry : list.entrySet()) {
+
+        for (Object key : list.keySet()) {
             UserInfo userInfo = new UserInfo();
-            userInfo.setId(Integer.valueOf(entry.getKey()));
-            Map userInfoMap = (Map) entry.getValue();
-            userInfo.setUsername(userInfoMap.get("name").toString());
-            userInfo.setPhone(userInfoMap.get("phone").toString());
-            userInfo.setSessionId(userInfoMap.get("sid").toString());
-            userInfo.setDeviceId(userInfoMap.get("device_id").toString());
-            userInfo.setDeviceInfo(userInfoMap.get("device_info").toString());
-            userInfo.setCreateTime(Utils.stringToDate(userInfoMap.get("create_time").toString()));
-            userInfo.setUpdateTime(Utils.stringToDate(userInfoMap.get("update_time").toString()));
+            userInfo.setId(TypeUtils.toInt(key, -1));
+            JSONObject userInfoMap = list.getJSONObject(key.toString());
+            userInfo.setUsername(userInfoMap.getString("name"));
+            userInfo.setPhone(userInfoMap.getString("phone"));
+            userInfo.setSessionId(userInfoMap.getString("sid"));
+            userInfo.setDeviceId(userInfoMap.getString("device_id"));
+            userInfo.setDeviceInfo(userInfoMap.getString("device_info"));
+            userInfo.setCreateTime(Utils.stringToDate(userInfoMap.getString("create_time")));
+            userInfo.setUpdateTime(Utils.stringToDate(userInfoMap.getString("update_time")));
             userInfoList.add(userInfo);
         }
         return userInfoList;
-    }
-
-
-    public static void main(String[] args) {
-        String str = "{\n" +
-                "         \"error\": 0,\n" +
-                "         \"msg\" : \"success\",\n" +
-                "         \"data\": {\n" +
-                "         \"uid\": \"1000001\"," +
-                "\"uids\": [123,333,22222]" +
-                "         }\n" +
-                "         }";
-        Map<String, Object> response = new Gson().fromJson(str, HashMap.class);
-        System.out.println(((Map) (response.get("data"))).get("uids").getClass());
     }
 
 }

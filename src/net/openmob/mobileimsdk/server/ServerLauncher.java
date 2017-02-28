@@ -22,7 +22,7 @@ public abstract class ServerLauncher {
     private static Logger logger = LoggerFactory.getLogger(ServerLauncher.class);
 
     public static int PORT = 7901;
-    public static int SESION_RECYCLER_EXPIRE = 10;
+    public static int SESSION_RECYCLER_EXPIRE = 10;
 
     private boolean running = false;
     protected ServerCoreHandler serverCoreHandler = null;
@@ -74,7 +74,7 @@ public abstract class ServerLauncher {
         acceptor.getFilterChain()
                 .addLast("threadPool", new ExecutorFilter(Executors.newCachedThreadPool()));
         acceptor.setHandler(this.serverCoreHandler);
-        acceptor.setSessionRecycler(new ExpiringSessionRecycler(SESION_RECYCLER_EXPIRE));
+        acceptor.setSessionRecycler(new ExpiringSessionRecycler(SESSION_RECYCLER_EXPIRE));
         return acceptor;
     }
 
@@ -155,7 +155,7 @@ public abstract class ServerLauncher {
         }
 
         if (expire > 0)
-            SESION_RECYCLER_EXPIRE = expire;
+            SESSION_RECYCLER_EXPIRE = expire;
     }
 
     public enum SenseMode {

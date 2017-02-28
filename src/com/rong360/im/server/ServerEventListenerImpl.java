@@ -6,6 +6,7 @@ import com.rong360.im.service.remote.HUserService;
 import net.openmob.mobileimsdk.server.ServerLauncher;
 import net.openmob.mobileimsdk.server.event.ServerEventListener;
 import net.openmob.mobileimsdk.server.protocol.Protocol;
+import net.openmob.mobileimsdk.server.protocol.c.PLoginInfo;
 import org.apache.mina.core.session.IoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,11 +26,14 @@ public class ServerEventListenerImpl implements ServerEventListener {
         this.launcher = launcher;
     }
 
+
     @Override
-    public int onVerifyUserCallBack(String loginName, String password, String extra) {
-        logger.info("[IM][Login]验证用户 " + loginName + "登录开始！");
-        //todo 从 extra中解析出device_id和device_info
-        int uid = userService.login(null, loginName, null, null);
+    public int onVerifyUserCallBack(PLoginInfo loginInfo, IoSession session) {
+        logger.info("[IM][Login]验证用户 " + loginInfo.getPhone() + "登录开始！");
+//        int uid = userService.login(loginInfo.getDeviceId(), loginInfo.getPhone(), loginInfo.getDeviceInfo(), String.valueOf(session.getId()));
+
+        int uid = userService.login(loginInfo.getLoginPsw(), loginInfo.getLoginName(), loginInfo.getLoginName(), String.valueOf(session.getId()));
+        loginInfo.setUid(uid);
         return uid == -1 ? -1 : 0;
     }
 
@@ -41,6 +45,7 @@ public class ServerEventListenerImpl implements ServerEventListener {
         for (Message message : messages) {
             boolean sendOk;
             try {
+                logger.debug("[IM][Offline]发送离线消息为：" + message.toRequestParam());
                 sendOk = launcher.sendData(message.getFromUid(), userId, message.getMessage(), true, message.getGroupId());
             } catch (Exception e) {
                 logger.error("[IM][Offline]发送离线消息出错 message_id: {}", message.getId());

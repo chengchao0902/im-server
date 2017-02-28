@@ -78,7 +78,7 @@ public class Message implements HttpRequest {
         Map<String, String> jsonMap = new HashMap<>();
         jsonMap.put("id", String.valueOf(getId()));
         jsonMap.put("from_uid", String.valueOf(getFromUid()));
-        jsonMap.put("to_uids", Utils.joinList(getToUids(), null));
+        jsonMap.put("to_uids", getToUids().toString());
         jsonMap.put("gid", String.valueOf(getGroupId()));
         jsonMap.put("msg", getMessage());
         jsonMap.put("create_time", Utils.dateToString(getCreateTime()));

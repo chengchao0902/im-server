@@ -11,25 +11,17 @@ import java.io.IOException;
  */
 public class IMServerLauncher extends ServerLauncher {
 
-    private static IMServerLauncher launcher = null;
 
-    public static IMServerLauncher getLauncher() throws IOException {
-        if (launcher == null) {
-            QoS4SendDaemonS2C.DEBUG = true;
-            IMServerLauncher.PORT = 7901;
-            IMServerLauncher.setSenseMode(SenseMode.MODE_10S);
-            launcher = new IMServerLauncher();
-        }
-        return launcher;
+    public IMServerLauncher(int port, boolean isDebug, SenseMode mode) throws IOException {
+        super();
+        QoS4SendDaemonS2C.DEBUG = isDebug;
+        IMServerLauncher.PORT = port;
+        IMServerLauncher.setSenseMode(mode);
     }
 
     @Override
     protected ServerCoreHandler initServerCoreHandler() {
         return new IMServerHandler();
-    }
-
-    public IMServerLauncher() throws IOException {
-        super();
     }
 
     @Override
@@ -38,7 +30,4 @@ public class IMServerLauncher extends ServerLauncher {
         this.setServerMessageQoSEventListener(new MsgQoSEventS2CListener());
     }
 
-    public static void main(String[] args) throws IOException {
-        IMServerLauncher.getLauncher().startup();
-    }
 }

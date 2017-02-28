@@ -158,7 +158,7 @@ public class ServerCoreHandler extends IoHandlerAdapter {
                 return;
             }
 
-            int code = this.serverEventListener.onVerifyUserCallBack(loginInfo.getLoginName(), loginInfo.getLoginPsw(), loginInfo.getExtra());
+            int code = this.serverEventListener.onVerifyUserCallBack(loginInfo, session);
             if (code == 0) {
                 int user_id = getNextUserId(loginInfo);
 

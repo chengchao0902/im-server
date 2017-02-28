@@ -1,15 +1,16 @@
 package net.openmob.mobileimsdk.server.processor;
 
-import java.util.HashMap;
-import java.util.Iterator;
-
-import net.openmob.mobileimsdk.server.ServerCoreHandler;
 import net.openmob.mobileimsdk.server.protocol.c.PLoginInfo;
-
 import org.apache.mina.core.session.IoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Iterator;
+
+/**
+ * todo 改为使用redis存储session映射关系
+ */
 public class UserProcessor {
     private static Logger logger = LoggerFactory.getLogger(UserProcessor.class);
 
