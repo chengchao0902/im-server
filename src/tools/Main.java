@@ -23,7 +23,7 @@ public final class Main {
 
         Component component = new Component();
         component.getServers().add(Protocol.HTTP, port);
-        component.getDefaultHost().attach("/", TextFileServer.class);
+        component.getDefaultHost().attach("/test", TextFileServer.class);
         component.start();
     }
 
