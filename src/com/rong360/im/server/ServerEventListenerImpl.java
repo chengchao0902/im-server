@@ -66,13 +66,13 @@ public class ServerEventListenerImpl implements ServerEventListener {
 
     @Override
     public boolean onTransBuffer_CallBack(int paramInt1, int paramInt2, String paramString1, String paramString2) {
-        System.out.println("==========================onTransBuffer_CallBack");
+
         return true;
     }
 
     @Override
     public void onTransBuffer_C2C_CallBack(int paramInt1, int paramInt2, String paramString) {
-        System.out.println("=========================onTransBuffer_C2C_CallBack");
+
     }
 
     @Override
@@ -82,6 +82,8 @@ public class ServerEventListenerImpl implements ServerEventListener {
         message.addToUid(pFromClient.getTo());
         message.setGroupId(pFromClient.getGid());
         message.setMessage(pFromClient.getDataContent());
-        return messageService.saveOfflineMsg(message);
+        boolean result = messageService.saveOfflineMsg(message);
+        logger.info("[IM][Offline]保存离线消息，from：{}, to:{}, result:" + result, pFromClient.getFrom(), pFromClient.getTo());
+        return result;
     }
 }

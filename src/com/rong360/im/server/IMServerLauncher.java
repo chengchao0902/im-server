@@ -11,6 +11,22 @@ import java.io.IOException;
  */
 public class IMServerLauncher extends ServerLauncher {
 
+    private static ServerLauncher serverLauncher;
+
+    public static ServerLauncher getInstance(int port, boolean isDebug, SenseMode mode) throws IOException {
+        if (serverLauncher == null) {
+            serverLauncher = new IMServerLauncher(port, isDebug, mode);
+        }
+        return serverLauncher;
+    }
+
+    public static ServerLauncher getInstance() {
+        if (serverLauncher == null) {
+            throw new RuntimeException("请先调用getInstance(int port, boolean isDebug, SenseMode mode)");
+        }
+        return serverLauncher;
+    }
+
 
     public IMServerLauncher(int port, boolean isDebug, SenseMode mode) throws IOException {
         super();

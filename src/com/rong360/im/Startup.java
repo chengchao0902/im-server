@@ -19,7 +19,7 @@ public final class Startup {
         int restPort = Config.getInt("im.http.port", 8888);
         boolean debug = Config.getBoolean("debug", false);
         ServerLauncher.SenseMode mode = ServerLauncher.SenseMode.valueOf(Config.getString("mode"));
-        IMServerLauncher launcher = new IMServerLauncher(imPort, debug, mode);
+        ServerLauncher launcher = IMServerLauncher.getInstance(imPort, debug, mode);
         RestMain restMain = new RestMain(restPort);
         MessageSenderResource.launcher = launcher;
         restMain.attach("/api/sendmsg", MessageSenderResource.class);
