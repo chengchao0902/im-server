@@ -50,7 +50,7 @@ public class IMServerHandler extends ServerCoreHandler {
                 public void run() {
                     boolean sendOk;
                     try {
-                        sendOk = IMServerLauncher.getInstance().sendData(pFromClient.getFrom(), uid, pFromClient.getDataContent(), true, gid);
+                        sendOk = IMServerLauncher.sendData(pFromClient.getFrom(), uid, pFromClient.getDataContent(), true, gid);
                     } catch (Exception e) {
                         logger.error("[IM][Group]群消息发送异常，from：" + pFromClient.getFrom() + ",to:" + uid + ",gid:" + gid, e);
                         sendOk = false;

@@ -3,7 +3,6 @@ package com.rong360.im.server;
 import com.rong360.im.request.Message;
 import com.rong360.im.service.remote.HMessageService;
 import com.rong360.im.service.remote.HUserService;
-import net.openmob.mobileimsdk.server.ServerLauncher;
 import net.openmob.mobileimsdk.server.event.ServerEventListener;
 import net.openmob.mobileimsdk.server.protocol.Protocol;
 import net.openmob.mobileimsdk.server.protocol.c.PLoginInfo;
@@ -20,11 +19,6 @@ public class ServerEventListenerImpl implements ServerEventListener {
     private static Logger logger = LoggerFactory.getLogger(ServerEventListenerImpl.class);
     private HUserService userService = new HUserService();
     private HMessageService messageService = new HMessageService();
-    private ServerLauncher launcher;
-
-    public ServerEventListenerImpl(ServerLauncher launcher) {
-        this.launcher = launcher;
-    }
 
 
     @Override
@@ -46,7 +40,7 @@ public class ServerEventListenerImpl implements ServerEventListener {
             boolean sendOk;
             try {
                 logger.debug("[IM][Offline]发送离线消息为：" + message.toRequestParam());
-                sendOk = launcher.sendData(message.getFromUid(), userId, message.getMessage(), true, message.getGroupId());
+                sendOk = IMServerLauncher.sendData(message.getFromUid(), userId, message.getMessage(), true, message.getGroupId());
             } catch (Exception e) {
                 logger.error("[IM][Offline]发送离线消息出错 message_id: {}", message.getId());
                 sendOk = false;

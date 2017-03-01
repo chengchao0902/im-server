@@ -11,11 +11,12 @@ import java.util.ArrayList;
 public class MsgQoSEventS2CListener implements MessageQoSEventListenerS2C {
     @Override
     public void messagesLost(ArrayList<Protocol> paramArrayList) {
+        //// TODO: 2017/3/2  保存消息到数据库中
 
     }
 
     @Override
     public void messagesBeReceived(String paramString) {
-
+        //// TODO: 2017/3/2  从库中删除消息
     }
 }
