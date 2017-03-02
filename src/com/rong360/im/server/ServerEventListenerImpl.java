@@ -44,11 +44,11 @@ public class ServerEventListenerImpl implements ServerEventListener {
     }
 
     @Override
-    public void onUserLoginAction_CallBack(int userId, String loginName, IoSession session) {
+    public void onUserLoginAction_CallBack(final int userId, String loginName, IoSession session) {
         //在这获取离线消息，并发送出去
         logger.info("[IM][Login]用户 {} 登录成功！", loginName);
         executor.execute(new Runnable() {
-            //// TODO: 2017/3/2 改为任务的形式，Timer实现 
+            //// TODO: 2017/3/2 改为任务的形式，Timer实现
             @Override
             public void run() {
                 try {

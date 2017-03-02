@@ -38,12 +38,12 @@ public class IMServerHandler extends ServerCoreHandler {
     }
 
     @Override
-    public void sendGroupMessage(IoSession session, Protocal pFromClient, String remoteAddress) throws Exception {
+    public void sendGroupMessage(IoSession session, final Protocal pFromClient, String remoteAddress) throws Exception {
         super.sendGroupMessage(session, pFromClient, remoteAddress);
-        int gid = pFromClient.getGid();
+        final int gid = pFromClient.getGid();
         GroupInfo groupInfo = groupService.getGroupInfo(gid);
         List<Integer> uids = groupInfo.getUids();
-        for (int uid : uids) {
+        for (final int uid : uids) {
             executor.execute(new Runnable() {
                 @Override
                 public void run() {
