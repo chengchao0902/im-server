@@ -1,7 +1,7 @@
 
-package net.openmob.mobileimsdk.server.protocol;
+package net.openmob.mobileimsdk.server.protocal;
 
-public interface ProtocolType {
+public interface ProtocalType {
     interface C {
         int FROM_CLIENT_TYPE_OF_LOGIN = 0;
         int FROM_CLIENT_TYPE_OF_KEEP$ALIVE = 1;

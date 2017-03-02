@@ -1,5 +1,5 @@
 
-package net.openmob.mobileimsdk.server.protocol.s;
+package net.openmob.mobileimsdk.server.protocal.s;
 
 public class PLoginInfoResponse {
     private int code = 0;

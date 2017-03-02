@@ -1,14 +1,14 @@
 
-package net.openmob.mobileimsdk.server.protocol;
+package net.openmob.mobileimsdk.server.protocal;
 
 import com.google.gson.Gson;
-import net.openmob.mobileimsdk.server.protocol.c.PKeepAlive;
-import net.openmob.mobileimsdk.server.protocol.c.PLoginInfo;
-import net.openmob.mobileimsdk.server.protocol.s.PErrorResponse;
-import net.openmob.mobileimsdk.server.protocol.s.PKeepAliveResponse;
-import net.openmob.mobileimsdk.server.protocol.s.PLoginInfoResponse;
+import net.openmob.mobileimsdk.server.protocal.c.PKeepAlive;
+import net.openmob.mobileimsdk.server.protocal.c.PLoginInfo;
+import net.openmob.mobileimsdk.server.protocal.s.PErrorResponse;
+import net.openmob.mobileimsdk.server.protocal.s.PKeepAliveResponse;
+import net.openmob.mobileimsdk.server.protocal.s.PLoginInfoResponse;
 
-public class ProtocolFactory {
+public class ProtocalFactory {
     private static String create(Object c) {
         return new Gson().toJson(c);
     }
@@ -21,12 +21,12 @@ public class ProtocolFactory {
         return new Gson().fromJson(dataContentOfProtocal, clazz);
     }
 
-    public static Protocol parse(byte[] fullProtocalJASOnBytes, int len) {
-        return (Protocol) parse(fullProtocalJASOnBytes, len, Protocol.class);
+    public static Protocal parse(byte[] fullProtocalJASOnBytes, int len) {
+        return (Protocal) parse(fullProtocalJASOnBytes, len, Protocal.class);
     }
 
-    public static Protocol createPKeepAliveResponse(int to_user_id) {
-        return new Protocol(ProtocolType.S.FROM_SERVER_TYPE_OF_RESPONSE$KEEP$ALIVE,
+    public static Protocal createPKeepAliveResponse(int to_user_id) {
+        return new Protocal(ProtocalType.S.FROM_SERVER_TYPE_OF_RESPONSE$KEEP$ALIVE,
                 create(new PKeepAliveResponse()), 0, to_user_id);
     }
 
@@ -34,8 +34,8 @@ public class ProtocolFactory {
         return (PKeepAliveResponse) parse(dataContentOfProtocal, PKeepAliveResponse.class);
     }
 
-    public static Protocol createPKeepAlive(int from_user_id) {
-        return new Protocol(ProtocolType.C.FROM_CLIENT_TYPE_OF_KEEP$ALIVE,
+    public static Protocal createPKeepAlive(int from_user_id) {
+        return new Protocal(ProtocalType.C.FROM_CLIENT_TYPE_OF_KEEP$ALIVE,
                 create(new PKeepAlive()), from_user_id, 0);
     }
 
@@ -43,8 +43,8 @@ public class ProtocolFactory {
         return (PKeepAlive) parse(dataContentOfProtocal, PKeepAlive.class);
     }
 
-    public static Protocol createPErrorResponse(int errorCode, String errorMsg, int user_id) {
-        return new Protocol(ProtocolType.S.FROM_SERVER_TYPE_OF_RESPONSE$FOR$ERROR,
+    public static Protocal createPErrorResponse(int errorCode, String errorMsg, int user_id) {
+        return new Protocal(ProtocalType.S.FROM_SERVER_TYPE_OF_RESPONSE$FOR$ERROR,
                 create(new PErrorResponse(errorCode, errorMsg)), 0, user_id);
     }
 
@@ -52,15 +52,15 @@ public class ProtocolFactory {
         return (PErrorResponse) parse(dataContentOfProtocal, PErrorResponse.class);
     }
 
-    public static Protocol createPLoginoutInfo(int user_id, String loginName) {
-        return new Protocol(ProtocolType.C.FROM_CLIENT_TYPE_OF_LOGOUT
+    public static Protocal createPLoginoutInfo(int user_id, String loginName) {
+        return new Protocal(ProtocalType.C.FROM_CLIENT_TYPE_OF_LOGOUT
 //				, create(new PLogoutInfo(user_id, loginName))
                 , null
                 , user_id, 0);
     }
 
-    public static Protocol createPLoginInfo(String loginName, String loginPsw, String extra) {
-        return new Protocol(ProtocolType.C.FROM_CLIENT_TYPE_OF_LOGIN
+    public static Protocal createPLoginInfo(String loginName, String loginPsw, String extra) {
+        return new Protocal(ProtocalType.C.FROM_CLIENT_TYPE_OF_LOGIN
                 , create(new PLoginInfo(loginName, loginPsw, extra)), -1, 0);
     }
 
@@ -68,30 +68,30 @@ public class ProtocolFactory {
         return (PLoginInfo) parse(dataContentOfProtocal, PLoginInfo.class);
     }
 
-    public static Protocol createPLoginInfoResponse(int code, int user_id) {
-        return new Protocol(ProtocolType.S.FROM_SERVER_TYPE_OF_RESPONSE$LOGIN,
+    public static Protocal createPLoginInfoResponse(int code, int user_id) {
+        return new Protocal(ProtocalType.S.FROM_SERVER_TYPE_OF_RESPONSE$LOGIN,
                 create(new PLoginInfoResponse(code, user_id)),
                 0,
                 user_id,
-                true, Protocol.genFingerPrint());
+                true, Protocal.genFingerPrint());
     }
 
     public static PLoginInfoResponse parsePLoginInfoResponse(String dataContentOfProtocal) {
         return (PLoginInfoResponse) parse(dataContentOfProtocal, PLoginInfoResponse.class);
     }
 
-    public static Protocol createCommonData(String dataContent, int from_user_id, int to_user_id, boolean QoS, String fingerPrint) {
-        return new Protocol(ProtocolType.C.FROM_CLIENT_TYPE_OF_COMMON$DATA,
+    public static Protocal createCommonData(String dataContent, int from_user_id, int to_user_id, boolean QoS, String fingerPrint) {
+        return new Protocal(ProtocalType.C.FROM_CLIENT_TYPE_OF_COMMON$DATA,
                 dataContent, from_user_id, to_user_id, QoS, fingerPrint);
     }
 
-    public static Protocol createCommonData(String dataContent, int from_user_id, int to_user_id) {
-        return new Protocol(ProtocolType.C.FROM_CLIENT_TYPE_OF_COMMON$DATA,
+    public static Protocal createCommonData(String dataContent, int from_user_id, int to_user_id) {
+        return new Protocal(ProtocalType.C.FROM_CLIENT_TYPE_OF_COMMON$DATA,
                 dataContent, from_user_id, to_user_id);
     }
 
-    public static Protocol createRecivedBack(int from_user_id, int to_user_id, String recievedMessageFingerPrint) {
-        return new Protocol(ProtocolType.C.FROM_CLIENT_TYPE_OF_RECIVED
+    public static Protocal createRecivedBack(int from_user_id, int to_user_id, String recievedMessageFingerPrint) {
+        return new Protocal(ProtocalType.C.FROM_CLIENT_TYPE_OF_RECIVED
                 , recievedMessageFingerPrint, from_user_id, to_user_id);// 该包当然不需要QoS支持！
     }
 }

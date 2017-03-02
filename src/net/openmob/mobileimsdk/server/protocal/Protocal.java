@@ -1,11 +1,11 @@
 
-package net.openmob.mobileimsdk.server.protocol;
+package net.openmob.mobileimsdk.server.protocal;
 
 import com.google.gson.Gson;
 
 import java.util.UUID;
 
-public class Protocol {
+public class Protocal {
     private int type = 0;
     private String dataContent = null;
     private int from = -1;
@@ -15,11 +15,11 @@ public class Protocol {
     private boolean QoS = false;
     private transient int retryCount = 0;
 
-    public Protocol(int type, String dataContent, int from, int to) {
+    public Protocal(int type, String dataContent, int from, int to) {
         this(type, dataContent, from, to, false, null);
     }
 
-    public Protocol(int type, String dataContent, int from, int to, boolean QoS, String fingerPrint) {
+    public Protocal(int type, String dataContent, int from, int to, boolean QoS, String fingerPrint) {
         this.type = type;
         this.dataContent = dataContent;
         this.from = from;
@@ -104,7 +104,7 @@ public class Protocol {
 
     public Object clone() {
         // 克隆一个Protocal对象（该对象已重置retryCount数值为0）
-        Protocol cloneP = new Protocol(getType(),
+        Protocal cloneP = new Protocal(getType(),
                 getDataContent(), getFrom(), getTo(), isQoS(), getFp());
         cloneP.setGid(getGid());
         return cloneP;

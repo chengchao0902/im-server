@@ -3,11 +3,11 @@ package net.openmob.mobileimsdk.server;
 import net.openmob.mobileimsdk.server.event.MessageQoSEventListenerS2C;
 import net.openmob.mobileimsdk.server.event.ServerEventListener;
 import net.openmob.mobileimsdk.server.processor.UserProcessor;
-import net.openmob.mobileimsdk.server.protocol.CharsetHelper;
-import net.openmob.mobileimsdk.server.protocol.Protocol;
-import net.openmob.mobileimsdk.server.protocol.ProtocolFactory;
-import net.openmob.mobileimsdk.server.protocol.ProtocolType;
-import net.openmob.mobileimsdk.server.protocol.c.PLoginInfo;
+import net.openmob.mobileimsdk.server.protocal.CharsetHelper;
+import net.openmob.mobileimsdk.server.protocal.Protocal;
+import net.openmob.mobileimsdk.server.protocal.ProtocalFactory;
+import net.openmob.mobileimsdk.server.protocal.ProtocalType;
+import net.openmob.mobileimsdk.server.protocal.c.PLoginInfo;
 import net.openmob.mobileimsdk.server.qos.QoS4ReciveDaemonC2S;
 import net.openmob.mobileimsdk.server.qos.QoS4SendDaemonS2C;
 import org.apache.mina.core.buffer.IoBuffer;
@@ -40,7 +40,7 @@ public class ServerCoreHandler extends IoHandlerAdapter {
         session.close(true);
     }
 
-    public void processReceiveData(IoSession session, Protocol pFromClient, String remoteAddress) throws Exception {
+    public void processReceiveData(IoSession session, Protocal pFromClient, String remoteAddress) throws Exception {
         logger.info(">> 收到客户端" + remoteAddress + "的通用数据发送请求.");
         // 开始回调
         if (this.serverEventListener != null) {
@@ -51,7 +51,7 @@ public class ServerCoreHandler extends IoHandlerAdapter {
 
             // 【C2S数据】客户端发给服务端的消息
             if (pFromClient.getTo() == 0) {
-                if (pFromClient.getType() == ProtocolType.C.FROM_CLIENT_TYPE_OF_RECIVED) {
+                if (pFromClient.getType() == ProtocalType.C.FROM_CLIENT_TYPE_OF_RECIVED) {
                     String theFingerPrint = pFromClient.getDataContent();
                     logger.debug("【IMCORE】【QoS机制_S2C】收到" + pFromClient.getFrom() + "发过来的指纹为" + theFingerPrint + "的应答包.");
 
@@ -134,8 +134,8 @@ public class ServerCoreHandler extends IoHandlerAdapter {
         this.serverEventListener.onUserLoginAction_CallBack(userId, loginInfo.getLoginName(), session);
     }
 
-    private void login(IoSession session, Protocol pFromClient, String remoteAddress) throws Exception {
-        PLoginInfo loginInfo = ProtocolFactory.parsePLoginInfo(pFromClient.getDataContent());
+    private void login(IoSession session, Protocal pFromClient, String remoteAddress) throws Exception {
+        PLoginInfo loginInfo = ProtocalFactory.parsePLoginInfo(pFromClient.getDataContent());
         logger.info("[IMCORE]>> 客户端" + remoteAddress + "发过来的登陆信息内容是：getLoginName=" +
                 loginInfo.getLoginName() + "|getLoginPsw=" + loginInfo.getLoginPsw());
 
@@ -148,7 +148,7 @@ public class ServerCoreHandler extends IoHandlerAdapter {
                 logger.debug("[IMCORE]>> 【注意】客户端" + remoteAddress + "的会话正常且已经登陆过，而此时又重新登陆：getLoginName=" +
                         loginInfo.getLoginName() + "|getLoginPsw=" + loginInfo.getLoginPsw());
 
-                boolean sendOK = sendData(session, ProtocolFactory.createPLoginInfoResponse(0, _try_user_id));
+                boolean sendOK = sendData(session, ProtocalFactory.createPLoginInfoResponse(0, _try_user_id));
                 if (sendOK) {
                     loginSuccess(session, _try_user_id, loginInfo);
                     return;
@@ -162,7 +162,7 @@ public class ServerCoreHandler extends IoHandlerAdapter {
             if (code == 0) {
                 int user_id = getNextUserId(loginInfo);
 
-                boolean sendOK = sendData(session, ProtocolFactory.createPLoginInfoResponse(code, user_id));
+                boolean sendOK = sendData(session, ProtocalFactory.createPLoginInfoResponse(code, user_id));
                 if (sendOK) {
                     loginSuccess(session, user_id, loginInfo);
                     return;
@@ -171,54 +171,54 @@ public class ServerCoreHandler extends IoHandlerAdapter {
                 return;
             }
 
-            sendData(session, ProtocolFactory.createPLoginInfoResponse(code, -1));
+            sendData(session, ProtocalFactory.createPLoginInfoResponse(code, -1));
             return;
         }
 
         logger.warn("[IMCORE]>> 收到客户端" + remoteAddress + "登陆信息，但回调对象是null，没有进行回调.");
     }
 
-    public void sendGroupMessage(IoSession session, Protocol pFromClient, String remoteAddress) throws Exception {
+    public void sendGroupMessage(IoSession session, Protocal pFromClient, String remoteAddress) throws Exception {
         logger.warn("[IMCORE]>> 收到客户端" + remoteAddress + "发送的群消息, 群号为：" + pFromClient.getTo());
     }
 
     public void messageReceived(IoSession session, Object message) throws Exception {
         if ((message instanceof IoBuffer)) {
             IoBuffer buffer = (IoBuffer) message;
-            Protocol pFromClient = fromIOBuffer(buffer);
+            Protocal pFromClient = fromIOBuffer(buffer);
             String remoteAddress = clientInfoToString(session);
             logger.debug("[IMCORE]收到客户端 " + remoteAddress + " 的消息：" + pFromClient.getDataContent());
             switch (pFromClient.getType()) {
-                case ProtocolType.C.FROM_CLIENT_TYPE_OF_RECIVED:
-                case ProtocolType.C.FROM_CLIENT_TYPE_OF_COMMON$DATA: {
+                case ProtocalType.C.FROM_CLIENT_TYPE_OF_RECIVED:
+                case ProtocalType.C.FROM_CLIENT_TYPE_OF_COMMON$DATA: {
                     processReceiveData(session, pFromClient, remoteAddress);
                     break;
                 }
-                case ProtocolType.C.FROM_CLIENT_TYPE_OF_COMMON$GROUP: {
+                case ProtocalType.C.FROM_CLIENT_TYPE_OF_COMMON$GROUP: {
                     sendGroupMessage(session, pFromClient, remoteAddress);
                     break;
                 }
-                case ProtocolType.C.FROM_CLIENT_TYPE_OF_KEEP$ALIVE: {
+                case ProtocalType.C.FROM_CLIENT_TYPE_OF_KEEP$ALIVE: {
                     if (!UserProcessor.isLogined(session)) {
                         replyDataForUnlogined(session, pFromClient);
                         return;
                     }
 
-                    sendData(ProtocolFactory.createPKeepAliveResponse(UserProcessor.getUserIdFromSession(session)));
+                    sendData(ProtocalFactory.createPKeepAliveResponse(UserProcessor.getUserIdFromSession(session)));
                     break;
                 }
-                case ProtocolType.C.FROM_CLIENT_TYPE_OF_LOGIN: {
+                case ProtocalType.C.FROM_CLIENT_TYPE_OF_LOGIN: {
                     login(session, pFromClient, remoteAddress);
                     break;
                 }
-                case ProtocolType.C.FROM_CLIENT_TYPE_OF_LOGOUT: {
+                case ProtocalType.C.FROM_CLIENT_TYPE_OF_LOGOUT: {
                     logger.info("[IMCORE]>> 收到客户端" + remoteAddress + "的退出登陆请求.");
                     session.close(true);
                     break;
                 }
                 // FIXME: 以下代码建议仅用于Debug时，否则存在恶意DDoS攻击的可能！
                 // 【收到客户端发过来的ECHO指令（目前回显指令仅用于C2S时开发人员的网络测试，别无他用】
-//				case ProtocolType.C.FROM_CLIENT_TYPE_OF_ECHO:
+//				case ProtocalType.C.FROM_CLIENT_TYPE_OF_ECHO:
 //				{
 //					pFromClient.setType(53);
 //					sendData(session, pFromClient);
@@ -239,16 +239,16 @@ public class ServerCoreHandler extends IoHandlerAdapter {
         return UserProcessor.nextUserId(loginInfo);
     }
 
-    protected boolean replyDataForUnlogined(IoSession session, Protocol p) throws Exception {
+    protected boolean replyDataForUnlogined(IoSession session, Protocal p) throws Exception {
         logger.warn("[IMCORE]>> 客户端" + clientInfoToString(session) + "尚未登陆，" + p.getDataContent() + "处理未继续.");
 
-        return sendData(session, ProtocolFactory.createPErrorResponse(
+        return sendData(session, ProtocalFactory.createPErrorResponse(
                 301, p.toGsonString(), -1));
     }
 
-    protected boolean replyDelegateRecievedBack(IoSession session, Protocol pFromClient) throws Exception {
+    protected boolean replyDelegateRecievedBack(IoSession session, Protocal pFromClient) throws Exception {
         if ((pFromClient.isQoS()) && (pFromClient.getFp() != null)) {
-            Protocol receivedBackP = ProtocolFactory.createRecivedBack(
+            Protocal receivedBackP = ProtocalFactory.createRecivedBack(
                     pFromClient.getTo(),
                     pFromClient.getFrom(),
                     pFromClient.getFp());
@@ -315,12 +315,12 @@ public class ServerCoreHandler extends IoHandlerAdapter {
     }
 
     static boolean sendData(int from_user_id, int to_user_id, String dataContent, boolean QoS, String fingerPrint, int groupId) throws Exception {
-        Protocol protocol = ProtocolFactory.createCommonData(dataContent, from_user_id, to_user_id, QoS, fingerPrint);
-        protocol.setGid(groupId);
-        return sendData(protocol);
+        Protocal protocal = ProtocalFactory.createCommonData(dataContent, from_user_id, to_user_id, QoS, fingerPrint);
+        protocal.setGid(groupId);
+        return sendData(protocal);
     }
 
-    static boolean sendData(Protocol p) throws Exception {
+    static boolean sendData(Protocal p) throws Exception {
         if (p != null) {
             if (p.getTo() != 0) {
                 return sendData(UserProcessor.getInstance().getSession(p.getTo()), p);
@@ -333,7 +333,7 @@ public class ServerCoreHandler extends IoHandlerAdapter {
         return false;
     }
 
-    static boolean sendData(IoSession session, Protocol p) throws Exception {
+    static boolean sendData(IoSession session, Protocal p) throws Exception {
         if (session == null) {
             logger.info("[IMCORE]toSession==null >> id=" + p.getFrom() + "的用户尝试发给客户端" + p.getTo() +
                     "的消息：str=" + p.getDataContent() + "因接收方的id已不在线，此次实时发送没有继续(此消息可考虑作离线处理哦).");
@@ -396,7 +396,7 @@ public class ServerCoreHandler extends IoHandlerAdapter {
         return jsonStr;
     }
 
-    public static Protocol fromIOBuffer(IoBuffer buffer) throws Exception {
-        return (Protocol) ProtocolFactory.parse(fromIOBuffer_JSON(buffer), Protocol.class);
+    public static Protocal fromIOBuffer(IoBuffer buffer) throws Exception {
+        return (Protocal) ProtocalFactory.parse(fromIOBuffer_JSON(buffer), Protocal.class);
     }
 }

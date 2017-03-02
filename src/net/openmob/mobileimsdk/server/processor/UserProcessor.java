@@ -1,6 +1,6 @@
 package net.openmob.mobileimsdk.server.processor;
 
-import net.openmob.mobileimsdk.server.protocol.c.PLoginInfo;
+import net.openmob.mobileimsdk.server.protocal.c.PLoginInfo;
 import org.apache.mina.core.session.IoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.Timer;
 
 import net.openmob.mobileimsdk.server.ServerLauncher;
-import net.openmob.mobileimsdk.server.protocol.Protocol;
+import net.openmob.mobileimsdk.server.protocal.Protocal;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +23,7 @@ public class QoS4SendDaemonS2C {
     public static final int QOS_TRY_COUNT = 1;
 
     private ServerLauncher serverLauncher = null;
-    private ConcurrentHashMap<String, Protocol> sentMessages = new ConcurrentHashMap<String, Protocol>();
+    private ConcurrentHashMap<String, Protocal> sentMessages = new ConcurrentHashMap<String, Protocal>();
     private ConcurrentHashMap<String, Long> sendMessagesTimestamp = new ConcurrentHashMap<String, Long>();
 
     private boolean running = false;
@@ -54,7 +54,7 @@ public class QoS4SendDaemonS2C {
         // 极端情况下本次循环内可能执行时间超过了时间间隔，此处是防止在前一
         // 次还没有运行完的情况下又重复执行，从而出现无法预知的错误
         if (!this._excuting) {
-            ArrayList<Protocol> lostMessages = new ArrayList<Protocol>();
+            ArrayList<Protocal> lostMessages = new ArrayList<Protocal>();
             this._excuting = true;
             try {
                 if (DEBUG) {
@@ -62,7 +62,7 @@ public class QoS4SendDaemonS2C {
                 }
 
                 for (String key : this.sentMessages.keySet()) {
-                    Protocol p = (Protocol) this.sentMessages.get(key);
+                    Protocal p = (Protocal) this.sentMessages.get(key);
                     if ((p != null) && (p.isQoS())) {
                         if (p.getRetryCount() >= QOS_TRY_COUNT) {
                             if (DEBUG) {
@@ -70,7 +70,7 @@ public class QoS4SendDaemonS2C {
                                         "的消息包重传次数已达" + p.getRetryCount() + "(最多" + QOS_TRY_COUNT + "次)上限，将判定为丢包！");
                             }
 
-                            lostMessages.add((Protocol) p.clone());
+                            lostMessages.add((Protocal) p.clone());
 
                             remove(p.getFp());
                         } else {
@@ -120,7 +120,7 @@ public class QoS4SendDaemonS2C {
         }
     }
 
-    protected void notifyMessageLost(ArrayList<Protocol> lostMessages) {
+    protected void notifyMessageLost(ArrayList<Protocal> lostMessages) {
         if ((this.serverLauncher != null) && (this.serverLauncher.getServerMessageQoSEventListener() != null))
             this.serverLauncher.getServerMessageQoSEventListener().messagesLost(lostMessages);
     }
@@ -155,7 +155,7 @@ public class QoS4SendDaemonS2C {
         return this.sentMessages.get(fingerPrint) != null;
     }
 
-    public void put(Protocol p) {
+    public void put(Protocal p) {
         if (p == null) {
             if (DEBUG)
                 logger.warn("Invalid arg p==null.");
@@ -169,7 +169,7 @@ public class QoS4SendDaemonS2C {
 
         if (!p.isQoS()) {
             if (DEBUG)
-                logger.warn("This protocol is not QoS pkg, ignore it!");
+                logger.warn("This protocal is not QoS pkg, ignore it!");
             return;
         }
 
@@ -194,7 +194,7 @@ public class QoS4SendDaemonS2C {
             Object result = sentMessages.remove(fingerPrint);
             if (DEBUG)
                 logger.warn("【IMCORE】【QoS发送方】指纹为" + fingerPrint + "的消息已成功从发送质量保证队列中移除(可能是收到接收方的应答也可能是达到了重传的次数上限)，重试次数="
-                        + (result != null ? ((Protocol) result).getRetryCount() : "none呵呵."));
+                        + (result != null ? ((Protocal) result).getRetryCount() : "none呵呵."));
         } catch (Exception e) {
             if (DEBUG)
                 logger.warn("【IMCORE】【QoS发送方】remove(fingerPrint)时出错了：", e);

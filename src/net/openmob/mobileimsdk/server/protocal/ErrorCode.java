@@ -1,5 +1,5 @@
 
-package net.openmob.mobileimsdk.server.protocol;
+package net.openmob.mobileimsdk.server.protocal;
 
 public interface ErrorCode {
     int COMMON_CODE_OK = 0;

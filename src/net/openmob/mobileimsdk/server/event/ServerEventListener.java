@@ -1,8 +1,8 @@
 
 package net.openmob.mobileimsdk.server.event;
 
-import net.openmob.mobileimsdk.server.protocol.Protocol;
-import net.openmob.mobileimsdk.server.protocol.c.PLoginInfo;
+import net.openmob.mobileimsdk.server.protocal.Protocal;
+import net.openmob.mobileimsdk.server.protocal.c.PLoginInfo;
 import org.apache.mina.core.session.IoSession;
 
 public interface ServerEventListener {
@@ -16,5 +16,5 @@ public interface ServerEventListener {
 
     void onTransBuffer_C2C_CallBack(int paramInt1, int paramInt2, String paramString);
 
-    boolean onTransBuffer_C2C_RealTimeSendFaild_CallBack(Protocol pFromClient);
+    boolean onTransBuffer_C2C_RealTimeSendFaild_CallBack(Protocal pFromClient);
 }

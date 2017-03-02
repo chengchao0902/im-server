@@ -4,8 +4,8 @@ import com.rong360.im.request.Message;
 import com.rong360.im.service.remote.HMessageService;
 import com.rong360.im.service.remote.HUserService;
 import net.openmob.mobileimsdk.server.event.ServerEventListener;
-import net.openmob.mobileimsdk.server.protocol.Protocol;
-import net.openmob.mobileimsdk.server.protocol.c.PLoginInfo;
+import net.openmob.mobileimsdk.server.protocal.Protocal;
+import net.openmob.mobileimsdk.server.protocal.c.PLoginInfo;
 import org.apache.mina.core.session.IoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,7 +71,7 @@ public class ServerEventListenerImpl implements ServerEventListener {
     }
 
     @Override
-    public boolean onTransBuffer_C2C_RealTimeSendFaild_CallBack(Protocol pFromClient) {
+    public boolean onTransBuffer_C2C_RealTimeSendFaild_CallBack(Protocal pFromClient) {
         Message message = new Message();
         message.setFromUid(pFromClient.getFrom());
         message.addToUid(pFromClient.getTo());

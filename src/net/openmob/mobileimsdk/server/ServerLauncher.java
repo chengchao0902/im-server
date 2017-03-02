@@ -2,7 +2,7 @@ package net.openmob.mobileimsdk.server;
 
 import net.openmob.mobileimsdk.server.event.MessageQoSEventListenerS2C;
 import net.openmob.mobileimsdk.server.event.ServerEventListener;
-import net.openmob.mobileimsdk.server.protocol.Protocol;
+import net.openmob.mobileimsdk.server.protocal.Protocal;
 import net.openmob.mobileimsdk.server.qos.QoS4ReciveDaemonC2S;
 import net.openmob.mobileimsdk.server.qos.QoS4SendDaemonS2C;
 import org.apache.mina.core.filterchain.DefaultIoFilterChainBuilder;
@@ -120,11 +120,11 @@ public abstract class ServerLauncher {
                 QoS, fingerPrint, groupId);
     }
 
-    public static boolean sendData(Protocol p) throws Exception {
+    public static boolean sendData(Protocal p) throws Exception {
         return ServerCoreHandler.sendData(p);
     }
 
-    public static boolean sendData(IoSession session, Protocol p) throws Exception {
+    public static boolean sendData(IoSession session, Protocal p) throws Exception {
         return ServerCoreHandler.sendData(session, p);
     }
 

@@ -6,7 +6,7 @@ import java.awt.event.ActionListener;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.Timer;
 
-import net.openmob.mobileimsdk.server.protocol.Protocol;
+import net.openmob.mobileimsdk.server.protocal.Protocal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,7 +96,7 @@ public class QoS4ReciveDaemonC2S implements ActionListener {
         return this.timer.isRunning();
     }
 
-    public void addRecieved(Protocol p) {
+    public void addRecieved(Protocal p) {
         if ((p != null) && (p.isQoS()))
             addRecieved(p.getFp());
     }

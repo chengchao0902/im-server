@@ -1,5 +1,5 @@
 
-package net.openmob.mobileimsdk.server.protocol;
+package net.openmob.mobileimsdk.server.protocal;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;

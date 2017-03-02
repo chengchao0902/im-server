@@ -5,9 +5,8 @@ import com.rong360.im.request.Message;
 import com.rong360.im.service.remote.HGroupService;
 import com.rong360.im.service.remote.HMessageService;
 import net.openmob.mobileimsdk.server.ServerCoreHandler;
-import net.openmob.mobileimsdk.server.ServerLauncher;
-import net.openmob.mobileimsdk.server.protocol.Protocol;
-import net.openmob.mobileimsdk.server.protocol.c.PLoginInfo;
+import net.openmob.mobileimsdk.server.protocal.Protocal;
+import net.openmob.mobileimsdk.server.protocal.c.PLoginInfo;
 import org.apache.mina.core.session.IoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +38,7 @@ public class IMServerHandler extends ServerCoreHandler {
     }
 
     @Override
-    public void sendGroupMessage(IoSession session, Protocol pFromClient, String remoteAddress) throws Exception {
+    public void sendGroupMessage(IoSession session, Protocal pFromClient, String remoteAddress) throws Exception {
         super.sendGroupMessage(session, pFromClient, remoteAddress);
         int gid = pFromClient.getGid();
         GroupInfo groupInfo = groupService.getGroupInfo(gid);
