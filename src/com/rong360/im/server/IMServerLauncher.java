@@ -11,7 +11,6 @@ import java.io.IOException;
  */
 public class IMServerLauncher extends ServerLauncher {
 
-
     public IMServerLauncher(int port, boolean isDebug, SenseMode mode) throws IOException {
         super();
         QoS4SendDaemonS2C.DEBUG = isDebug;
@@ -26,7 +25,7 @@ public class IMServerLauncher extends ServerLauncher {
 
     @Override
     protected void initListeners() {
-        this.setServerEventListener(new ServerEventListenerImpl(this));
+        this.setServerEventListener(new ServerEventListenerImpl());
         this.setServerMessageQoSEventListener(new MsgQoSEventS2CListener());
     }
 

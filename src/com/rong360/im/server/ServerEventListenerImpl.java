@@ -3,7 +3,6 @@ package com.rong360.im.server;
 import com.rong360.im.request.Message;
 import com.rong360.im.service.remote.HMessageService;
 import com.rong360.im.service.remote.HUserService;
-import net.openmob.mobileimsdk.server.ServerLauncher;
 import net.openmob.mobileimsdk.server.event.ServerEventListener;
 import net.openmob.mobileimsdk.server.protocol.Protocol;
 import net.openmob.mobileimsdk.server.protocol.c.PLoginInfo;
@@ -20,11 +19,6 @@ public class ServerEventListenerImpl implements ServerEventListener {
     private static Logger logger = LoggerFactory.getLogger(ServerEventListenerImpl.class);
     private HUserService userService = new HUserService();
     private HMessageService messageService = new HMessageService();
-    private ServerLauncher launcher;
-
-    public ServerEventListenerImpl(ServerLauncher launcher) {
-        this.launcher = launcher;
-    }
 
 
     @Override
@@ -47,7 +41,7 @@ public class ServerEventListenerImpl implements ServerEventListener {
             boolean sendOk;
             try {
                 logger.debug("[IM][Offline]发送离线消息为：" + message.toRequestParam());
-                sendOk = launcher.sendData(message.getFromUid(), userId, message.getMessage(), true, message.getGroupId());
+                sendOk = IMServerLauncher.sendData(message.getFromUid(), userId, message.getMessage(), true, message.getGroupId());
             } catch (Exception e) {
                 logger.error("[IM][Offline]发送离线消息出错 message_id: {}", message.getId());
                 sendOk = false;
@@ -67,13 +61,13 @@ public class ServerEventListenerImpl implements ServerEventListener {
 
     @Override
     public boolean onTransBuffer_CallBack(int paramInt1, int paramInt2, String paramString1, String paramString2) {
-        System.out.println("==========================onTransBuffer_CallBack");
+
         return true;
     }
 
     @Override
     public void onTransBuffer_C2C_CallBack(int paramInt1, int paramInt2, String paramString) {
-        System.out.println("=========================onTransBuffer_C2C_CallBack");
+
     }
 
     @Override
@@ -83,6 +77,8 @@ public class ServerEventListenerImpl implements ServerEventListener {
         message.addToUid(pFromClient.getTo());
         message.setGroupId(pFromClient.getGid());
         message.setMessage(pFromClient.getDataContent());
-        return messageService.saveOfflineMsg(message);
+        boolean result = messageService.saveOfflineMsg(message);
+        logger.info("[IM][Offline]保存离线消息，from：{}, to:{}, result:" + result, pFromClient.getFrom(), pFromClient.getTo());
+        return result;
     }
 }
