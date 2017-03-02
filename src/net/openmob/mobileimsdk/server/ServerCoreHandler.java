@@ -323,6 +323,11 @@ public class ServerCoreHandler extends IoHandlerAdapter {
     static boolean sendData(Protocal p) throws Exception {
         if (p != null) {
             if (p.getTo() != 0) {
+                String prefix = "个人" + p.getFrom();
+                if (p.getGid() > 0) {
+                    prefix = "群" + p.getGid();
+                }
+                p.setDataContent(prefix + "==>>" + p.getDataContent());
                 return sendData(UserProcessor.getInstance().getSession(p.getTo()), p);
             }
 

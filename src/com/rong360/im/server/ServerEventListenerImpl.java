@@ -11,6 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by chengchao on 2017/2/25.
@@ -19,6 +23,13 @@ public class ServerEventListenerImpl implements ServerEventListener {
     private static Logger logger = LoggerFactory.getLogger(ServerEventListenerImpl.class);
     private HUserService userService = new HUserService();
     private HMessageService messageService = new HMessageService();
+    private ThreadPoolExecutor executor;
+    private BlockingQueue<Runnable> queue;
+
+    {
+        queue = new ArrayBlockingQueue<>(1000);
+        executor = new ThreadPoolExecutor(10, 100, 1, TimeUnit.MINUTES, queue);
+    }
 
 
     @Override
@@ -36,21 +47,33 @@ public class ServerEventListenerImpl implements ServerEventListener {
     public void onUserLoginAction_CallBack(int userId, String loginName, IoSession session) {
         //在这获取离线消息，并发送出去
         logger.info("[IM][Login]用户 {} 登录成功！", loginName);
-        List<Message> messages = messageService.getOfflineMsg(userId);
-        for (Message message : messages) {
-            boolean sendOk;
-            try {
-                logger.debug("[IM][Offline]发送离线消息为：" + message.toRequestParam());
-                sendOk = IMServerLauncher.sendData(message.getFromUid(), userId, message.getMessage(), true, message.getGroupId());
-            } catch (Exception e) {
-                logger.error("[IM][Offline]发送离线消息出错 message_id: {}", message.getId());
-                sendOk = false;
+        executor.execute(new Runnable() {
+            //// TODO: 2017/3/2 改为任务的形式，Timer实现 
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    logger.warn("[IM][Offline] 发送离线消息sleep 0.5s 异常, 忽略异常");
+                }
+                List<Message> messages = messageService.getOfflineMsg(userId);
+                for (Message message : messages) {
+                    boolean sendOk;
+                    try {
+                        logger.debug("[IM][Offline]发送离线消息为：" + message.toRequestParam());
+                        sendOk = IMServerLauncher.sendData(message.getFromUid(), userId, message.getMessage(), true, message.getGroupId());
+                    } catch (Exception e) {
+                        logger.error("[IM][Offline]发送离线消息出错 message_id: {}", message.getId());
+                        sendOk = false;
+                    }
+                    if (!sendOk) {
+                        logger.warn("[IM][Offline]发送离线消息失败 message_id: {}", message.getId());
+                        messageService.saveOfflineMsg(message);
+                    }
+                }
             }
-            if (!sendOk) {
-                logger.warn("[IM][Offline]发送离线消息失败 message_id: {}", message.getId());
-                messageService.saveOfflineMsg(message);
-            }
-        }
+        });
+
     }
 
     @Override
