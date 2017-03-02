@@ -33,6 +33,7 @@ public class ServerEventListenerImpl implements ServerEventListener {
 //        int uid = userService.login(loginInfo.getDeviceId(), loginInfo.getPhone(), loginInfo.getDeviceInfo(), String.valueOf(session.getId()));
 
         int uid = userService.login(loginInfo.getLoginPsw(), loginInfo.getLoginName(), loginInfo.getLoginName(), String.valueOf(session.getId()));
+        logger.info("=============uid:" + uid);
         loginInfo.setUid(uid);
         return uid == -1 ? -1 : 0;
     }
@@ -60,7 +61,7 @@ public class ServerEventListenerImpl implements ServerEventListener {
 
     @Override
     public void onUserLogoutAction_CallBack(int userId, Object paramObject) {
-        logger.info("[IM][Logout]用户 {} 退出登录！");
+        logger.info("[IM][Logout]用户 " + userId + " 退出登录！");
         userService.logout(userId);
     }
 

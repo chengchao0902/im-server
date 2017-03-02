@@ -72,8 +72,8 @@ public class ServerCoreHandler extends IoHandlerAdapter {
 
                         QoS4ReciveDaemonC2S.getInstance().addRecieved(pFromClient);
 
-                        boolean receivedBackSendSucess = replyDelegateRecievedBack(session, pFromClient);
-                        if (receivedBackSendSucess) {
+                        boolean receivedBackSendSuccess = replyDelegateRecievedBack(session, pFromClient);
+                        if (receivedBackSendSuccess) {
                             logger.debug("【QoS_应答_C2S】向" + pFromClient.getFrom() + "发送" + pFromClient.getFp() +
                                     "的应答包成功了,from=" + pFromClient.getTo() + ".");
                         }
@@ -186,8 +186,8 @@ public class ServerCoreHandler extends IoHandlerAdapter {
         if ((message instanceof IoBuffer)) {
             IoBuffer buffer = (IoBuffer) message;
             Protocol pFromClient = fromIOBuffer(buffer);
-
             String remoteAddress = clientInfoToString(session);
+            logger.debug("[IMCORE]收到客户端 " + remoteAddress + " 的消息：" + pFromClient.getDataContent());
             switch (pFromClient.getType()) {
                 case ProtocolType.C.FROM_CLIENT_TYPE_OF_RECIVED:
                 case ProtocolType.C.FROM_CLIENT_TYPE_OF_COMMON$DATA: {
