@@ -179,7 +179,7 @@ public class ServerCoreHandler extends IoHandlerAdapter {
     }
 
     public void sendGroupMessage(IoSession session, Protocal pFromClient, String remoteAddress) throws Exception {
-        logger.warn("[IMCORE]>> 收到客户端" + remoteAddress + "发送的群消息, 群号为：" + pFromClient.getTo());
+        logger.warn("[IMCORE]>> 收到客户端" + remoteAddress + "发送的群消息, 群号为：" + pFromClient.getGid());
     }
 
     public void messageReceived(IoSession session, Object message) throws Exception {
@@ -188,6 +188,7 @@ public class ServerCoreHandler extends IoHandlerAdapter {
             Protocal pFromClient = fromIOBuffer(buffer);
             String remoteAddress = clientInfoToString(session);
             logger.debug("[IMCORE]收到客户端 " + remoteAddress + " 的消息：" + pFromClient.getDataContent());
+            logger.info("from:" + pFromClient.getFrom() + ",to:" + pFromClient.getTo() + ",gid:" + pFromClient.getGid() + ",tpe:" + pFromClient.getType());
             switch (pFromClient.getType()) {
                 case ProtocalType.C.FROM_CLIENT_TYPE_OF_RECIVED:
                 case ProtocalType.C.FROM_CLIENT_TYPE_OF_COMMON$DATA: {

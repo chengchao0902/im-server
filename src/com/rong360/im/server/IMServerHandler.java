@@ -6,13 +6,17 @@ import com.rong360.im.service.remote.HGroupService;
 import com.rong360.im.service.remote.HMessageService;
 import net.openmob.mobileimsdk.server.ServerCoreHandler;
 import net.openmob.mobileimsdk.server.protocal.Protocal;
+import net.openmob.mobileimsdk.server.protocal.ProtocalFactory;
 import net.openmob.mobileimsdk.server.protocal.c.PLoginInfo;
 import org.apache.mina.core.session.IoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by chengchao on 2017/2/25.
@@ -43,33 +47,45 @@ public class IMServerHandler extends ServerCoreHandler {
         final int gid = pFromClient.getGid();
         GroupInfo groupInfo = groupService.getGroupInfo(gid);
         List<Integer> uids = groupInfo.getUids();
-        for (final int uid : uids) {
-            executor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    boolean sendOk;
-                    try {
-                        sendOk = IMServerLauncher.sendData(pFromClient.getFrom(), uid, pFromClient.getDataContent(), true, gid);
-                    } catch (Exception e) {
-                        logger.error("[IM][Group]群消息发送异常，from：" + pFromClient.getFrom() + ",to:" + uid + ",gid:" + gid, e);
-                        sendOk = false;
-                    }
-                    if (!sendOk) {
-                        Message message = new Message();
-                        message.addToUid(uid);
-                        message.setFromUid(pFromClient.getFrom());
-                        message.setGroupId(gid);
-                        message.setMessage(pFromClient.getDataContent());
-                        boolean saveOk = messageService.saveOfflineMsg(message);
-                        if (!saveOk) {
-                            logger.error("[IM][Group]群消息发送失败，并保存消息系统失败，from：" + pFromClient.getFrom() + ",to:" + uid + ",gid:" + gid);
+        if (uids.contains(pFromClient.getFrom())) {
+            uids.remove(Integer.valueOf(pFromClient.getFrom()));
+            for (final int uid : uids) {
+                executor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        boolean sendOk;
+                        try {
+                            sendOk = IMServerLauncher.sendData(pFromClient.getFrom(), uid, pFromClient.getDataContent(), true, pFromClient.getFp(), gid);
+                        } catch (Exception e) {
+                            logger.error("[IM][Group]群消息发送异常，from：" + pFromClient.getFrom() + ",to:" + uid + ",gid:" + gid, e);
+                            sendOk = false;
+                        }
+                        if (!sendOk) {
+                            Message message = new Message();
+                            message.addToUid(uid);
+                            message.setFromUid(pFromClient.getFrom());
+                            message.setGroupId(gid);
+                            message.setMessage(pFromClient.getDataContent());
+                            boolean saveOk = messageService.saveOfflineMsg(message);
+                            if (!saveOk) {
+                                logger.error("[IM][Group]群消息发送失败，并保存消息系统失败，from：" + pFromClient.getFrom() + ",to:" + uid + ",gid:" + gid);
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
+        }
 
+        if ((pFromClient.isQoS()) && (pFromClient.getFp() != null)) {
+            //// TODO: 2017/3/3 优化，如果应答消息发送失败等情况
+            Protocal receivedBackP = ProtocalFactory.createRecivedBack(
+                    pFromClient.getTo(),
+                    pFromClient.getFrom(),
+                    pFromClient.getFp());
+            receivedBackP.setGid(pFromClient.getGid());
+            IMServerLauncher.sendData(session, receivedBackP);
         }
         logger.info("[IM][Group] 群消息发送队列大小：" + queue.size() + ", 用户数量：" + uids.size());
-
     }
+
 }
